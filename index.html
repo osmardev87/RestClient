@@ -1,1046 +1,601 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full">
+<html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Client Web - Estilo Insomnia</title>
+    <title>Gomes Burger - Cardápio Online</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        insomnia: {
-                            dark: '#1e1e24',
-                            darker: '#141417',
-                            panel: '#272730',
-                            accent: '#6366f1',
-                            accentHover: '#4f46e5',
-                            border: '#3f3f46'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .font-mono { font-family: 'Fira Code', monospace; }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #141417; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .modal-backdrop {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .product-img {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
-<body class="h-full bg-insomnia-darker text-gray-100 flex flex-col overflow-hidden">
 
-    <header class="bg-insomnia-dark border-b border-insomnia-border h-14 flex items-center justify-between px-4 shrink-0">
-        <div class="flex items-center space-x-3">
-            <div class="bg-indigo-600 text-white p-2 rounded-lg flex items-center justify-center font-bold shadow-lg">
-                <i class="fa-solid fa-bolt text-lg"></i>
+<body class="bg-slate-50 text-slate-800 antialiased pb-28">
+
+    <!-- Cabeçalho -->
+    <header class="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-md">
+                    🍔</div>
+                <div>
+                    <h1 class="font-black text-slate-900 text-lg flex items-center">
+                        Gomes Burger
+                        <span
+                            class="ml-2 text-xs bg-red-50 text-red-600 font-bold px-2 py-0.5 rounded-full border border-red-100">WhatsApp
+                            & Delivery</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                        <span class="text-amber-500 font-bold">⭐ 4.9 <span class="text-slate-400 font-normal ml-1">(500+
+                                avaliações)</span></span>
+                        <span>•</span>
+                        <span class="text-emerald-600 font-semibold">🟢 Aberto agora</span>
+                    </p>
+                </div>
             </div>
-            <h1 class="font-bold text-lg tracking-wide text-white">Rest<span class="text-indigo-400">Client</span></h1>
-            <span class="text-xs bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-800">Pastas & Variáveis</span>
-        </div>
-        <div class="flex items-center space-x-3">
-            <!-- Ambiente Ativo -->
-            <div class="flex items-center space-x-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-2 py-1">
-                <i class="fa-solid fa-layer-group text-indigo-400 text-xs"></i>
-                <select id="active-env-select" onchange="switchActiveEnvironment(this.value)" class="bg-transparent text-xs text-gray-200 focus:outline-none cursor-pointer font-medium">
-                    <!-- Populated via JS -->
-                </select>
-            </div>
-            <button onclick="openEnvModal()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-gray-200 px-3 py-1.5 rounded-lg border border-insomnia-border transition flex items-center space-x-1.5 shadow">
-                <i class="fa-solid fa-code text-indigo-400 text-xs"></i>
-                <span>Variáveis Globais (<span id="env-count">0</span>)</span>
-            </button>
-            <button onclick="openNewFolderModal()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-gray-200 px-3 py-1.5 rounded-lg border border-insomnia-border transition flex items-center space-x-1.5 shadow">
-                <i class="fa-solid fa-folder-plus text-indigo-400 text-xs"></i>
-                <span>Nova Pasta</span>
-            </button>
-            <button onclick="addNewRequest()" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5 shadow">
-                <i class="fa-solid fa-plus text-xs"></i>
-                <span>Nova Requisição</span>
-            </button>
+            <button id="btnInfo"
+                class="p-2 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100 transition"
+                title="Informações da Loja">ℹ️</button>
         </div>
     </header>
 
-    <div class="flex-1 flex overflow-hidden">
-
-        <!-- Sidebar com Pastas e Requisições -->
-        <aside class="w-80 bg-insomnia-dark border-r border-insomnia-border flex flex-col shrink-0 select-none">
-            <div class="p-3 border-b border-insomnia-border flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center space-x-2">
-                    <i class="fa-solid fa-folder-open text-indigo-400"></i>
-                    <span>Coleções & Projetos</span>
-                </span>
-                <span id="request-count" class="text-xs bg-zinc-800 px-2 py-0.5 rounded text-gray-400">0</span>
+    <main class="max-w-4xl mx-auto px-4 pt-4">
+        <!-- Banner Destaque -->
+        <div
+            class="bg-gradient-to-r from-red-600 via-rose-600 to-orange-600 rounded-3xl p-6 text-white shadow-lg mb-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-center">
+            <div class="absolute right-0 top-0 bottom-0 opacity-10 text-9xl pointer-events-none select-none">🍔</div>
+            <div class="z-10 mb-4 md:mb-0">
+                <span
+                    class="bg-amber-400 text-slate-900 text-[10px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider">Super
+                    Destaque</span>
+                <h2 class="text-2xl md:text-3xl font-black mt-2 leading-tight">X-Bacon Artesanal Duplo com Batata
+                    Grátis!</h2>
+                <p class="text-xs md:text-sm text-red-100 mt-1">Peça direto pelo WhatsApp com total praticidade e
+                    rapidez.</p>
             </div>
-            <div id="requests-list" class="flex-1 overflow-y-auto p-2 space-y-2">
-                <!-- Items populated via JS -->
+            <div
+                class="z-10 bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/20 text-center shrink-0">
+                <p class="text-[10px] uppercase font-bold text-red-100">Tempo de entrega</p>
+                <p class="text-lg font-black text-white">30-40 min</p>
+                <p class="text-[10px] text-amber-300 font-bold mt-0.5">Taxa fixa R$ 5,90</p>
             </div>
-        </aside>
+        </div>
 
-        <!-- Main Content Panel -->
-        <main class="flex-1 flex flex-col bg-insomnia-darker overflow-hidden">
-            
-            <!-- URL and Method Bar -->
-            <div class="p-4 bg-insomnia-dark border-b border-insomnia-border flex flex-wrap gap-2 items-center">
-                <div class="relative w-32">
-                    <select id="request-method" onchange="updateCurrentRequestField('method', this.value)" class="w-full bg-insomnia-panel border border-insomnia-border text-sm font-semibold rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer">
-                        <option value="GET" class="text-emerald-400 font-bold">GET</option>
-                        <option value="POST" class="text-amber-400 font-bold">POST</option>
-                        <option value="PUT" class="text-blue-400 font-bold">PUT</option>
-                        <option value="DELETE" class="text-rose-400 font-bold">DELETE</option>
-                        <option value="PATCH" class="text-purple-400 font-bold">PATCH</option>
-                    </select>
-                    <div class="absolute right-3 top-3.5 pointer-events-none text-gray-400 text-xs">
-                        <i class="fa-solid fa-chevron-down"></i>
+        <!-- Busca -->
+        <div class="mb-6 relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">🔍</span>
+            <input type="text" id="searchInput" placeholder="Buscar no cardápio..."
+                class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-red-600 shadow-sm transition">
+        </div>
+
+        <!-- Categorias -->
+        <div id="categoriesBar"
+            class="flex space-x-2 overflow-x-auto no-scrollbar pb-4 mb-6 sticky top-16 bg-slate-50 z-30 pt-2"></div>
+
+        <!-- Lista de Produtos -->
+        <div id="productsContainer" class="space-y-8"></div>
+    </main>
+
+    <!-- Sacola Flutuante -->
+    <div id="cartBar"
+        class="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-slate-900/80 to-transparent pointer-events-none hidden">
+        <div class="max-w-4xl mx-auto pointer-events-auto">
+            <button id="btnCartOpen"
+                class="w-full bg-red-600 hover:bg-red-700 text-white p-4 rounded-2xl shadow-xl flex justify-between items-center transition transform hover:scale-[1.01]">
+                <div class="flex items-center space-x-3">
+                    <div id="cartCountBadge"
+                        class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center font-black text-sm">0
+                    </div>
+                    <div>
+                        <p class="font-black text-sm">Ver Sacola</p>
+                        <p id="cartItemLabel" class="text-[11px] text-red-100">0 itens</p>
                     </div>
                 </div>
-
-                <div class="flex-1 flex items-center bg-insomnia-panel border border-insomnia-border rounded-lg overflow-hidden focus-within:border-indigo-500">
-                    <span class="pl-3.5 text-gray-400 text-sm">
-                        <i class="fa-solid fa-globe"></i>
-                    </span>
-                    <input type="text" id="request-url" oninput="updateCurrentRequestField('url', this.value)" placeholder="https://api.exemplo.com/v1/dados ou {{baseUrl}}/endpoint" 
-                        class="w-full bg-transparent px-3 py-2.5 text-sm focus:outline-none text-gray-100 placeholder-gray-500 font-mono">
+                <div class="flex items-center space-x-2 font-black text-base">
+                    <span id="cartTotalText">R$ 0,00</span>
+                    <span>→</span>
                 </div>
-
-                <div class="flex items-center space-x-2">
-                    <input type="text" id="request-name" oninput="updateCurrentRequestField('name', this.value)" placeholder="Nome" 
-                        class="bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-indigo-500 w-32 font-medium" title="Nome da requisição">
-                    
-                    <button onclick="sendRequest()" id="send-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-2.5 rounded-lg transition flex items-center space-x-2 shadow-lg shadow-indigo-600/20 active:scale-95">
-                        <i class="fa-solid fa-paper-plane text-xs"></i>
-                        <span>Enviar</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
-                
-                <!-- Request Config Section (Left/Top half) -->
-                <div class="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-insomnia-border bg-insomnia-darker overflow-hidden">
-                    <div class="flex border-b border-insomnia-border bg-insomnia-dark px-2 shrink-0 overflow-x-auto">
-                        <button onclick="switchTab('body')" id="tab-body" class="px-4 py-2.5 text-xs font-semibold border-b-2 border-indigo-500 text-indigo-400 transition whitespace-nowrap">Corpo (JSON)</button>
-                        <button onclick="switchTab('formdata')" id="tab-formdata" class="px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap">Form-Data (Arquivos)</button>
-                        <button onclick="switchTab('headers')" id="tab-headers" class="px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap">Cabeçalhos (<span id="header-count">0</span>)</button>
-                        <button onclick="switchTab('params')" id="tab-params" class="px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap">Exemplos Prontos</button>
-                    </div>
-
-                    <!-- Body Editor Pane -->
-                    <div id="pane-body" class="flex-1 flex flex-col p-3 overflow-hidden">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs text-gray-400 font-medium">Payload JSON / Texto (Suporta <code class="text-indigo-400">{{variavel}}</code>):</span>
-                            <button onclick="formatJSON()" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center space-x-1">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                                <span>Formatar JSON</span>
-                            </button>
-                        </div>
-                        <textarea id="request-body" oninput="updateCurrentRequestField('body', this.value)" placeholder="{&#10;  &quot;chave&quot;: &quot;{{token}}&quot;&#10;}" 
-                            class="flex-1 w-full bg-insomnia-panel border border-insomnia-border rounded-lg p-3 text-sm font-mono text-gray-200 focus:outline-none focus:border-indigo-500 resize-none"></textarea>
-                    </div>
-
-                    <!-- Form-Data / Multipart Pane -->
-                    <div id="pane-formdata" class="flex-1 flex flex-col p-3 overflow-y-auto hidden">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs text-gray-400 font-medium">Campos e Arquivos/Imagens (multipart/form-data):</span>
-                            <button onclick="addFormDataRow(); saveCurrentFormData();" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-indigo-400 px-2.5 py-1 rounded border border-insomnia-border transition flex items-center space-x-1">
-                                <i class="fa-solid fa-plus text-[10px]"></i>
-                                <span>Novo Campo/Arquivo</span>
-                            </button>
-                        </div>
-                        <div id="formdata-container" class="space-y-2">
-                            <!-- Dynamic FormData rows -->
-                        </div>
-                    </div>
-
-                    <!-- Headers Editor Pane -->
-                    <div id="pane-headers" class="flex-1 flex flex-col p-3 overflow-y-auto hidden">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs text-gray-400 font-medium">Headers Personalizados (Chave / Valor):</span>
-                            <button onclick="addHeaderRow(); saveCurrentHeaders();" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-indigo-400 px-2.5 py-1 rounded border border-insomnia-border transition flex items-center space-x-1">
-                                <i class="fa-solid fa-plus text-[10px]"></i>
-                                <span>Novo Header</span>
-                            </button>
-                        </div>
-                        <div id="headers-container" class="space-y-2">
-                            <!-- Header dynamic rows -->
-                        </div>
-                    </div>
-
-                    <!-- Presets / Quick APIs Pane -->
-                    <div id="pane-params" class="flex-1 flex flex-col p-3 overflow-y-auto hidden space-y-3">
-                        <span class="text-xs text-gray-400 font-medium">Clique em uma API pública para testar instantaneamente:</span>
-                        
-                        <div onclick="loadPreset('GET', 'https://jsonplaceholder.typicode.com/todos/1', '')" class="bg-insomnia-panel hover:bg-zinc-800 border border-insomnia-border rounded-lg p-3 cursor-pointer transition flex items-center justify-between">
-                            <div>
-                                <div class="flex items-center space-x-2 mb-1">
-                                    <span class="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800">GET</span>
-                                    <span class="text-xs font-semibold text-gray-200">JSONPlaceholder - Tarefa #1</span>
-                                </div>
-                                <span class="text-[11px] text-gray-500 font-mono">https://jsonplaceholder.typicode.com/todos/1</span>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-gray-500 text-xs"></i>
-                        </div>
-
-                        <div onclick="loadPreset('GET', 'https://httpbin.org/ip', '')" class="bg-insomnia-panel hover:bg-zinc-800 border border-insomnia-border rounded-lg p-3 cursor-pointer transition flex items-center justify-between">
-                            <div>
-                                <div class="flex items-center space-x-2 mb-1">
-                                    <span class="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800">GET</span>
-                                    <span class="text-xs font-semibold text-gray-200">HTTPBin - Meu IP</span>
-                                </div>
-                                <span class="text-[11px] text-gray-500 font-mono">https://httpbin.org/ip</span>
-                            </div>
-                            <i class="fa-solid fa-arrow-right text-gray-500 text-xs"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Response Section -->
-                <div class="flex-1 flex flex-col bg-insomnia-darker overflow-hidden">
-                    <div class="flex items-center justify-between px-4 py-2.5 bg-insomnia-dark border-b border-insomnia-border shrink-0">
-                        <div class="flex items-center space-x-3">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Resposta</span>
-                            <div id="response-status" class="hidden text-xs font-bold px-2 py-0.5 rounded flex items-center space-x-1.5">
-                                <span id="status-dot" class="w-2 h-2 rounded-full"></span>
-                                <span id="status-code">000</span>
-                            </div>
-                            <span id="response-time" class="text-xs text-gray-400 hidden font-mono"></span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="switchResTab('body')" id="res-tab-body" class="text-xs text-indigo-400 font-medium px-2 py-1 rounded bg-indigo-950/50 border border-indigo-800 transition">Corpo</button>
-                            <button onclick="switchResTab('headers')" id="res-tab-headers" class="text-xs text-gray-400 font-medium px-2 py-1 rounded hover:bg-zinc-800 transition">Headers</button>
-                            <button onclick="copyResponse()" title="Copiar resposta" class="text-xs text-gray-400 hover:text-gray-200 px-2 py-1 rounded hover:bg-zinc-800 transition">
-                                <i class="fa-regular fa-copy"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Response Body View -->
-                    <div id="res-pane-body" class="flex-1 p-3 overflow-auto">
-                        <div id="response-placeholder" class="h-full flex flex-col items-center justify-center text-gray-500 space-y-2 py-12">
-                            <i class="fa-solid fa-terminal text-3xl text-zinc-700"></i>
-                            <p class="text-xs">Insira uma URL e clique em Enviar para inspecionar a resposta</p>
-                        </div>
-                        <div id="response-loader" class="hidden h-full flex flex-col items-center justify-center text-indigo-400 space-y-3 py-12">
-                            <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
-                            <p class="text-xs text-gray-400">Aguardando resposta do servidor...</p>
-                        </div>
-                        <pre id="response-output" class="hidden text-xs font-mono text-emerald-400 whitespace-pre-wrap break-all"></pre>
-                    </div>
-
-                    <!-- Response Headers View -->
-                    <div id="res-pane-headers" class="flex-1 p-3 overflow-auto hidden">
-                        <div id="response-headers-output" class="text-xs font-mono text-gray-300 space-y-1">
-                            <span class="text-gray-500">Nenhum header retornado ainda.</span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </main>
+            </button>
+        </div>
     </div>
 
-    <!-- Modal de Variáveis Globais & Ambientes -->
-    <div id="env-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-insomnia-dark border border-insomnia-border rounded-xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
-            <div class="p-4 border-b border-insomnia-border flex items-center justify-between bg-insomnia-panel/50">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-code text-indigo-400"></i>
-                    <h3 class="font-bold text-sm text-white">Gerenciador de Ambientes e Variáveis</h3>
-                </div>
-                <button onclick="closeEnvModal()" class="text-gray-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-sm"></i>
-                </button>
+    <!-- Modal Produto -->
+    <div id="productModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" id="productModalBackdrop"></div>
+        <div class="min-h-screen px-4 flex items-center justify-center relative">
+            <div class="w-full max-w-lg p-6 bg-white shadow-2xl rounded-3xl relative">
+                <button id="closeProductModal"
+                    class="absolute top-4 right-4 bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center font-bold z-10">✕</button>
+                <div id="productModalContent"></div>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto space-y-4">
-                <div class="flex flex-col space-y-2">
-                    <label class="text-xs text-gray-400 font-medium">Selecione o Ambiente para Editar:</label>
-                    <div class="flex items-center space-x-2">
-                        <select id="modal-env-select" onchange="selectModalEnv(this.value)" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-indigo-500 font-medium">
-                            <!-- Populated via JS -->
+        </div>
+    </div>
+
+    <!-- Painel Sacola -->
+    <div id="cartPanel" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop absolute inset-0" id="cartPanelBackdrop"></div>
+        <div class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col">
+            <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
+                <h2 class="font-black text-slate-900 text-base">🛒 Sua Sacola</h2>
+                <button id="closeCartPanel" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+            <div class="p-4 bg-slate-50 border-t space-y-3">
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase">Seu Nome</label>
+                    <input type="text" id="clientName" placeholder="Ex: Lucas Silva"
+                        class="w-full p-3 bg-white border border-slate-200 rounded-2xl text-xs focus:ring-2 focus:ring-red-600">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase">Tipo de Pedido</label>
+                        <select id="orderType"
+                            class="w-full p-3 bg-white border border-slate-200 rounded-2xl text-xs font-medium">
+                            <option value="DELIVERY">Delivery 🛵</option>
+                            <option value="RETIRADA">Retirada 🏪</option>
                         </select>
-                        <button onclick="addNewEnvironment()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-indigo-400 px-3 py-2 rounded-lg border border-insomnia-border transition flex items-center space-x-1">
-                            <i class="fa-solid fa-plus text-xs"></i>
-                            <span>Novo</span>
-                        </button>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase">Pagamento</label>
+                        <select id="paymentMethod"
+                            class="w-full p-3 bg-white border border-slate-200 rounded-2xl text-xs font-medium">
+                            <option value="PIX">Pix</option>
+                            <option value="CARTAO">Cartão na Entrega</option>
+                            <option value="DINHEIRO">Dinheiro</option>
+                        </select>
                     </div>
                 </div>
-
-                <p class="text-xs text-gray-400">
-                    Defina variáveis para o ambiente atual (ex: <code class="text-indigo-400">baseUrl</code> = <code class="text-indigo-400">https://api.exemplo.com</code>). Use nos campos com <code class="text-indigo-400">{{variavel}}</code>.
-                </p>
-                <div class="flex justify-between items-center pt-2">
-                    <span class="text-xs font-semibold text-gray-300">Variáveis (Chave / Valor):</span>
-                    <button onclick="addEnvRow(); saveEnvVariables();" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-indigo-400 px-2.5 py-1 rounded border border-insomnia-border transition flex items-center space-x-1">
-                        <i class="fa-solid fa-plus text-[10px]"></i>
-                        <span>Adicionar Variável</span>
-                    </button>
+                <div id="deliveryFieldWrapper">
+                    <label class="text-[11px] font-bold text-slate-500 uppercase">Endereço de Entrega</label>
+                    <input type="text" id="deliveryAddress" placeholder="Rua, Número e Bairro"
+                        class="w-full p-3 bg-white border border-slate-200 rounded-2xl text-xs">
                 </div>
-                <div id="env-container" class="space-y-2">
-                    <!-- Dynamic env rows -->
+                <div class="pt-3 border-t flex justify-between items-center">
+                    <span class="text-xs text-slate-500 font-bold">Total do Pedido:</span>
+                    <span id="panelTotal" class="text-xl font-black text-slate-900">R$ 0,00</span>
                 </div>
-            </div>
-            <div class="p-4 border-t border-insomnia-border bg-insomnia-panel/50 flex justify-between items-center">
-                <button id="delete-env-btn" onclick="deleteCurrentEnvironment()" class="text-xs text-rose-400 hover:text-rose-300 transition hidden flex items-center space-x-1">
-                    <i class="fa-solid fa-trash text-[10px]"></i>
-                    <span>Excluir este Ambiente</span>
-                </button>
-                <button onclick="closeEnvModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-xs transition shadow ml-auto">
-                    Salvar e Fechar
+                <button id="sendToWaBtn"
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-xs shadow-lg shadow-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center space-x-2">
+                    <span class="text-base">🟢</span>
+                    <span>ENVIAR PEDIDO VIA WHATSAPP</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Criar Pasta -->
-    <div id="folder-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-insomnia-dark border border-insomnia-border rounded-xl w-full max-w-sm shadow-2xl flex flex-col overflow-hidden">
-            <div class="p-4 border-b border-insomnia-border flex items-center justify-between bg-insomnia-panel/50">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-folder-plus text-indigo-400"></i>
-                    <h3 class="font-bold text-sm text-white">Criar Nova Pasta / Projeto</h3>
+    <!-- Modal Info Loja -->
+    <div id="infoModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop fixed inset-0" id="infoModalBackdrop"></div>
+        <div class="min-h-screen px-4 flex items-center justify-center relative">
+            <div class="w-full max-w-md p-6 bg-white shadow-2xl rounded-3xl relative">
+                <button id="closeInfoModal"
+                    class="absolute top-4 right-4 bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center font-bold">✕</button>
+                <h3 class="text-lg font-black text-slate-900 mb-2">Informações do Restaurante</h3>
+                <div class="space-y-3 text-xs text-slate-600">
+                    <p><strong>WhatsApp:</strong> (75) 99999-9999</p>
+                    <p><strong>Endereço:</strong> Rua dos Sabores, 420 - Centro, Paulo Afonso - BA</p>
+                    <p><strong>Horário:</strong> Terça a Domingo, das 18:00 às 23:30</p>
                 </div>
-                <button onclick="closeFolderModal()" class="text-gray-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-sm"></i>
-                </button>
-            </div>
-            <div class="p-4 space-y-3">
-                <label class="text-xs text-gray-400 font-medium">Nome da Pasta (ex: Autenticação, Usuários):</label>
-                <input type="text" id="new-folder-name" placeholder="Nome do projeto..." class="w-full bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-indigo-500 font-medium">
-            </div>
-            <div class="p-4 border-t border-insomnia-border bg-insomnia-panel/50 flex justify-end space-x-2">
-                <button onclick="closeFolderModal()" class="bg-zinc-800 hover:bg-zinc-700 text-gray-300 px-3 py-1.5 rounded-lg text-xs transition">Cancelar</button>
-                <button onclick="createFolder()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-1.5 rounded-lg text-xs transition shadow">Criar Pasta</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Estrutura de Pastas e Requisições
-        let folders = JSON.parse(localStorage.getItem('rest_client_folders') || 'null');
-        let requests = JSON.parse(localStorage.getItem('rest_client_saved_reqs') || 'null');
-
-        if (!folders) {
-            folders = [
-                { id: 'fol_geral', name: 'Geral / Padrão' },
-                { id: 'fol_auth', name: 'Autenticação & Usuários' }
-            ];
-        }
-
-        if (!requests || requests.length === 0) {
-            requests = [
-                {
-                    id: 'req_1',
-                    folderId: 'fol_geral',
-                    name: 'Exemplo GET (Tarefa)',
-                    method: 'GET',
-                    url: '{{baseUrl}}/todos/1',
-                    body: '',
-                    bodyType: 'json',
-                    headers: [{key: 'Content-Type', val: 'application/json'}],
-                    formData: []
-                },
-                {
-                    id: 'req_2',
-                    folderId: 'fol_auth',
-                    name: 'Exemplo POST (Criar)',
-                    method: 'POST',
-                    url: '{{baseUrl}}/posts',
-                    body: '{\n  "title": "Meu Post Salvo",\n  "body": "Conteúdo fixo",\n  "userId": 1\n}',
-                    bodyType: 'json',
-                    headers: [{key: 'Content-Type', val: 'application/json'}, {key: 'Authorization', val: '{{token}}'}],
-                    formData: []
-                }
-            ];
-        }
-
-        let environments = JSON.parse(localStorage.getItem('rest_client_environments') || 'null');
-        if (!environments || environments.length === 0) {
-            environments = [
-                {
-                    id: 'env_default',
-                    name: 'Development',
-                    variables: [
-                        {key: 'baseUrl', val: 'https://jsonplaceholder.typicode.com'},
-                        {key: 'token', val: 'Bearer meu-token-secreto-dev'}
-                    ]
-                },
-                {
-                    id: 'env_prod',
-                    name: 'Production',
-                    variables: [
-                        {key: 'baseUrl', val: 'https://api.producao.com'},
-                        {key: 'token', val: 'Bearer meu-token-secreto-prod'}
-                    ]
-                }
-            ];
-        }
-
-        let activeEnvId = localStorage.getItem('rest_client_active_env') || environments[0].id;
-        let modalSelectedEnvId = environments[0].id;
-        let currentRequestId = requests[0]?.id || null;
-
-        renderRequestsList();
-        if (currentRequestId) loadRequestToUI(currentRequestId);
-        renderEnvSelectors();
-
-        function switchTab(tab) {
-            document.getElementById('pane-body').classList.add('hidden');
-            document.getElementById('pane-formdata').classList.add('hidden');
-            document.getElementById('pane-headers').classList.add('hidden');
-            document.getElementById('pane-params').classList.add('hidden');
-            
-            document.getElementById('tab-body').className = "px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap";
-            document.getElementById('tab-formdata').className = "px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap";
-            document.getElementById('tab-headers').className = "px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap";
-            document.getElementById('tab-params').className = "px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap";
-
-            document.getElementById('pane-' + tab).classList.remove('hidden');
-            document.getElementById('tab-' + tab).className = "px-4 py-2.5 text-xs font-semibold border-b-2 border-indigo-500 text-indigo-400 transition whitespace-nowrap";
-            
-            const req = requests.find(r => r.id === currentRequestId);
-            if (req) {
-                req.bodyType = (tab === 'formdata') ? 'formdata' : 'json';
-                saveStorage();
+        // ==================================================
+        // 📋 SEU CARDÁPIO COM FOTOS REAIS — EDITE AQUI
+        // ==================================================
+        const produtos = [
+            {
+                id: 1,
+                category_id: 1,
+                categoryName: 'Hambúrgueres',
+                name: 'X-Bacon Artesanal Duplo',
+                description: 'Pão brioche dourado na manteiga, dois blends de carne 160g, cheddar cremoso derretido e muito bacon crocante.',
+                price: 34.90,
+                oldPrice: 42.00,
+                badge: 'Mais Pedido',
+                photo: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop'
+            },
+            {
+                id: 2,
+                category_id: 1,
+                categoryName: 'Hambúrgueres',
+                name: 'Gomes Smash Simples',
+                description: 'Pão fofinho, smash burger 90g prensado na chapa com crosta perfeita, queijo prato e molho secreto da casa.',
+                price: 24.90,
+                oldPrice: null,
+                badge: 'Promoção',
+                photo: 'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=400&h=300&fit=crop'
+            },
+            {
+                id: 3,
+                category_id: 1,
+                categoryName: 'Hambúrgueres',
+                name: 'Veggie Burger de Grão-de-Bico',
+                description: 'Pão australiano vegano, hambúrguer artesanal de grão-de-bico com ervas finas, alface americana e tomate fresco.',
+                price: 27.50,
+                oldPrice: null,
+                badge: 'Vegetariano',
+                photo: 'https://images.unsplash.com/photo-1520072959219-1d609802e6e3?w=400&h=300&fit=crop'
+            },
+            {
+                id: 4,
+                category_id: 2,
+                categoryName: 'Acompanhamentos',
+                name: 'Batata Frita Rústica com Cheddar e Bacon',
+                description: 'Batatas douradas temperadas com alecrim fresco, cobertas com molho cheddar cremoso e pedaços de bacon.',
+                price: 22.00,
+                oldPrice: 26.00,
+                badge: 'Favorito',
+                photo: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop'
+            },
+            {
+                id: 5,
+                category_id: 2,
+                categoryName: 'Acompanhamentos',
+                name: 'Onion Rings Crocantes',
+                description: 'Anéis de cebola graúdos empanados com farinha especial panko, acompanhados de molho barbecue artesanal.',
+                price: 18.00,
+                oldPrice: null,
+                badge: null,
+                photo: 'https://images.unsplash.com/photo-1639024471703-fd131a0e0d92?w=400&h=300&fit=crop'
+            },
+            {
+                id: 6,
+                category_id: 3,
+                categoryName: 'Bebidas',
+                name: 'Coca-Cola Zero 350ml',
+                description: 'Lata gelada 350ml.',
+                price: 6.50,
+                oldPrice: null,
+                badge: null,
+                photo: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400&h=300&fit=crop'
+            },
+            {
+                id: 7,
+                category_id: 3,
+                categoryName: 'Bebidas',
+                name: 'Suco Natural de Laranja 400ml',
+                description: 'Feito na hora com laranjas frescas selecionadas.',
+                price: 8.00,
+                oldPrice: null,
+                badge: 'Natural',
+                photo: 'https://images.unsplash.com/photo-1621506289937-a8e4df24b04b?w=400&h=300&fit=crop'
+            },
+            {
+                id: 8,
+                category_id: 4,
+                categoryName: 'Sobremesas',
+                name: 'Petit Gâteau com Sorvete',
+                description: 'Bolo de chocolate belga recheado com ganache quente, acompanhado de bola de sorvete de creme.',
+                price: 19.90,
+                oldPrice: 24.00,
+                badge: 'Doce',
+                photo: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop'
             }
+        ];
+
+        const categorias = [
+            { id: 'ALL', name: '🔥 Destaques' },
+            { id: 1, name: '🍔 Hambúrgueres' },
+            { id: 2, name: '🍟 Acompanhamentos' },
+            { id: 3, name: '🥤 Bebidas' },
+            { id: 4, name: '🍰 Sobremesas' }
+        ];
+
+        const CONFIG = {
+            whatsappNumber: '5575988477936' // ← Coloque SEU número aqui!
+        };
+
+        // ==================================================
+        // ⚙️ LÓGICA — NÃO PRECISA MEXER
+        // ==================================================
+        let cart = [];
+        let selectedCategory = 'ALL';
+        let searchTerm = '';
+        let selectedProduct = null;
+        let modalQuantity = 1;
+        let modalObservation = '';
+
+        const categoriesBar = document.getElementById('categoriesBar');
+        const productsContainer = document.getElementById('productsContainer');
+        const searchInput = document.getElementById('searchInput');
+        const cartBar = document.getElementById('cartBar');
+        const cartCountBadge = document.getElementById('cartCountBadge');
+        const cartItemLabel = document.getElementById('cartItemLabel');
+        const cartTotalText = document.getElementById('cartTotalText');
+        const productModal = document.getElementById('productModal');
+        const productModalContent = document.getElementById('productModalContent');
+        const cartPanel = document.getElementById('cartPanel');
+        const cartItemsList = document.getElementById('cartItemsList');
+        const deliveryFieldWrapper = document.getElementById('deliveryFieldWrapper');
+        const panelTotal = document.getElementById('panelTotal');
+        const infoModal = document.getElementById('infoModal');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCategories();
+            renderProducts();
+            bindEvents();
+        });
+
+        function bindEvents() {
+            searchInput.addEventListener('input', (e) => {
+                searchTerm = e.target.value.trim().toLowerCase();
+                renderProducts();
+            });
+
+            document.getElementById('btnInfo').addEventListener('click', () => infoModal.classList.remove('hidden'));
+            document.getElementById('closeInfoModal').addEventListener('click', () => infoModal.classList.add('hidden'));
+            document.getElementById('infoModalBackdrop').addEventListener('click', () => infoModal.classList.add('hidden'));
+
+            document.getElementById('btnCartOpen').addEventListener('click', () => {
+                renderCartPanel();
+                cartPanel.classList.remove('hidden');
+            });
+            document.getElementById('closeCartPanel').addEventListener('click', () => cartPanel.classList.add('hidden'));
+            document.getElementById('cartPanelBackdrop').addEventListener('click', () => cartPanel.classList.add('hidden'));
+
+            document.getElementById('closeProductModal').addEventListener('click', () => productModal.classList.add('hidden'));
+            document.getElementById('productModalBackdrop').addEventListener('click', () => productModal.classList.add('hidden'));
+
+            document.getElementById('orderType').addEventListener('change', (e) => {
+                deliveryFieldWrapper.style.display = e.target.value === 'DELIVERY' ? 'block' : 'none';
+            });
+
+            document.getElementById('sendToWaBtn').addEventListener('click', sendToWhatsApp);
         }
 
-        function switchResTab(tab) {
-            document.getElementById('res-pane-body').classList.add('hidden');
-            document.getElementById('res-pane-headers').classList.add('hidden');
-            document.getElementById('res-tab-body').className = "text-xs text-gray-400 font-medium px-2 py-1 rounded hover:bg-zinc-800 transition";
-            document.getElementById('res-tab-headers').className = "text-xs text-gray-400 font-medium px-2 py-1 rounded hover:bg-zinc-800 transition";
-
-            document.getElementById('res-pane-' + tab).classList.remove('hidden');
-            document.getElementById('res-tab-' + tab).className = "text-xs text-indigo-400 font-medium px-2 py-1 rounded bg-indigo-950/50 border border-indigo-800 transition";
+        function renderCategories() {
+            categoriesBar.innerHTML = '';
+            categorias.forEach(cat => {
+                const isActive = selectedCategory === cat.id;
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-2 rounded-2xl font-bold text-xs whitespace-nowrap transition flex items-center space-x-1.5 shrink-0 ${isActive ? 'bg-red-600 text-white shadow-md shadow-red-600/20' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80'
+                    }`;
+                btn.textContent = cat.name;
+                btn.addEventListener('click', () => {
+                    selectedCategory = cat.id;
+                    searchInput.value = '';
+                    searchTerm = '';
+                    renderCategories();
+                    renderProducts();
+                });
+                categoriesBar.appendChild(btn);
+            });
         }
 
-        function saveStorage() {
-            localStorage.setItem('rest_client_folders', JSON.stringify(folders));
-            localStorage.setItem('rest_client_saved_reqs', JSON.stringify(requests));
-        }
+        function renderProducts() {
+            productsContainer.innerHTML = '';
+            categorias.forEach(cat => {
+                if (cat.id === 'ALL') return;
+                let catProducts = produtos.filter(p => p.category_id === cat.id);
+                if (selectedCategory !== 'ALL' && selectedCategory !== cat.id) catProducts = [];
+                if (searchTerm) {
+                    catProducts = catProducts.filter(p =>
+                        p.name.toLowerCase().includes(searchTerm) ||
+                        p.description.toLowerCase().includes(searchTerm)
+                    );
+                }
+                if (catProducts.length === 0) return;
 
-        function renderRequestsList() {
-            const list = document.getElementById('requests-list');
-            document.getElementById('request-count').innerText = requests.length;
-            
-            list.innerHTML = '';
-            
-            folders.forEach(folder => {
-                const folderDiv = document.createElement('div');
-                folderDiv.className = "mb-3";
-                
-                const folderHeader = document.createElement('div');
-                folderHeader.className = "flex items-center justify-between text-xs font-semibold text-gray-400 px-2 py-1 bg-insomnia-panel/60 rounded-md mb-1";
-                folderHeader.innerHTML = `
-                    <div class="flex items-center space-x-1.5 truncate">
-                        <i class="fa-solid fa-folder text-indigo-400"></i>
-                        <span class="truncate text-gray-300">${folder.name}</span>
-                    </div>
-                    <div class="flex items-center space-x-1">
-                        <button onclick="addNewRequestToFolder('${folder.id}')" title="Nova requisição nesta pasta" class="hover:text-indigo-400 p-1"><i class="fa-solid fa-plus text-[10px]"></i></button>
-                        ${folders.length > 1 ? `<button onclick="deleteFolder('${folder.id}')" title="Excluir pasta" class="hover:text-red-400 p-1"><i class="fa-solid fa-trash text-[10px]"></i></button>` : ''}
-                    </div>
+                const section = document.createElement('div');
+                section.className = 'space-y-4';
+                section.innerHTML = `
+                    <h3 class="text-lg font-black text-slate-900 border-l-4 border-red-600 pl-3 flex items-center justify-between">
+                        <span>${cat.name}</span>
+                        <span class="text-xs font-normal text-slate-400">${catProducts.length} itens</span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 `;
-                folderDiv.appendChild(folderHeader);
-
-                const reqsContainer = document.createElement('div');
-                reqsContainer.className = "space-y-1 pl-2";
-                
-                const folderReqs = requests.filter(r => r.folderId === folder.id);
-                if (folderReqs.length === 0) {
-                    const emptyEl = document.createElement('div');
-                    emptyEl.className = "text-[11px] text-gray-600 px-2 py-1 italic";
-                    emptyEl.innerText = "Pasta vazia";
-                    reqsContainer.appendChild(emptyEl);
-                } else {
-                    folderReqs.forEach(req => {
-                        let badgeColor = "text-emerald-400 bg-emerald-950/60 border-emerald-900";
-                        if (req.method === 'POST') badgeColor = "text-amber-400 bg-amber-950/60 border-amber-900";
-                        if (req.method === 'PUT') badgeColor = "text-blue-400 bg-blue-950/60 border-blue-900";
-                        if (req.method === 'DELETE') badgeColor = "text-rose-400 bg-rose-950/60 border-rose-900";
-                        if (req.method === 'PATCH') badgeColor = "text-purple-400 bg-purple-950/60 border-purple-900";
-
-                        const isActive = req.id === currentRequestId;
-                        const activeClass = isActive ? 'bg-zinc-800 border-indigo-500/60 shadow-sm' : 'bg-insomnia-panel border-insomnia-border hover:bg-zinc-800/80';
-
-                        const reqItem = document.createElement('div');
-                        reqItem.className = `p-2 rounded-lg border cursor-pointer transition text-xs flex items-center justify-between group ${activeClass}`;
-                        reqItem.onclick = () => selectRequest(req.id);
-                        reqItem.innerHTML = `
-                            <div class="flex items-center space-x-2 overflow-hidden">
-                                <span class="font-bold px-1.5 py-0.5 rounded text-[10px] border ${badgeColor}">${req.method}</span>
-                                <div class="truncate flex flex-col">
-                                    <span class="font-semibold text-gray-200 truncate">${req.name || 'Sem Nome'}</span>
-                                    <span class="text-[10px] text-gray-500 font-mono truncate">${req.url || 'URL vazia'}</span>
-                                </div>
+                const grid = section.querySelector('.grid');
+                catProducts.forEach(prod => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-3xl p-4 border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer flex justify-between items-center group';
+                    card.innerHTML = `
+                        <div class="flex-1 pr-4">
+                            <h4 class="font-bold text-slate-800 text-sm group-hover:text-red-600 transition">${prod.name}</h4>
+                            <p class="text-slate-400 text-xs mt-1 line-clamp-2">${prod.description}</p>
+                            <div class="mt-3 flex items-center space-x-2">
+                                ${prod.oldPrice ? `<span class="text-xs text-slate-400 line-through">R$ ${prod.oldPrice.toFixed(2)}</span>` : ''}
+                                <span class="text-sm font-black text-slate-900">R$ ${prod.price.toFixed(2)}</span>
+                                ${prod.badge ? `<span class="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded">${prod.badge}</span>` : ''}
                             </div>
-                            ${requests.length > 1 ? `<button onclick="event.stopPropagation(); deleteRequest('${req.id}')" class="text-gray-500 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-trash text-[10px]"></i></button>` : ''}
-                        `;
-                        reqsContainer.appendChild(reqItem);
-                    });
-                }
-
-                folderDiv.appendChild(reqsContainer);
-                list.appendChild(folderDiv);
+                        </div>
+                        <div class="w-24 h-24 rounded-2xl overflow-hidden shrink-0 shadow-inner relative group-hover:scale-105 transition">
+                            <img src="${prod.photo}" alt="${prod.name}" class="product-img" loading="lazy">
+                            <div class="absolute -bottom-2 -right-2 bg-red-600 text-white w-7 h-7 rounded-full flex items-center justify-center shadow font-bold text-sm">+</div>
+                        </div>
+                    `;
+                    card.addEventListener('click', () => openProductModal(prod));
+                    grid.appendChild(card);
+                });
+                productsContainer.appendChild(section);
             });
-
-            saveStorage();
         }
 
-        function selectRequest(id) {
-            currentRequestId = id;
-            loadRequestToUI(id);
-            renderRequestsList();
+        function openProductModal(prod) {
+            selectedProduct = prod;
+            modalQuantity = 1;
+            modalObservation = '';
+            renderProductModal();
+            productModal.classList.remove('hidden');
         }
 
-        function loadRequestToUI(id) {
-            const req = requests.find(r => r.id === id);
-            if (!req) return;
-
-            document.getElementById('request-method').value = req.method || 'GET';
-            document.getElementById('request-url').value = req.url || '';
-            document.getElementById('request-name').value = req.name || '';
-            document.getElementById('request-body').value = req.body || '';
-
-            if (req.bodyType === 'formdata') {
-                switchTab('formdata');
-            } else {
-                switchTab('body');
-            }
-
-            const container = document.getElementById('headers-container');
-            container.innerHTML = '';
-            const headers = req.headers || [];
-            if (headers.length === 0) {
-                addHeaderRowToDOM('', '');
-            } else {
-                headers.forEach(h => addHeaderRowToDOM(h.key, h.val));
-            }
-            updateHeaderCount();
-
-            const fdContainer = document.getElementById('formdata-container');
-            fdContainer.innerHTML = '';
-            const formdata = req.formData || [];
-            if (formdata.length === 0) {
-                addFormDataRowToDOM('text', '', '');
-            } else {
-                formdata.forEach(f => addFormDataRowToDOM(f.type || 'text', f.key, f.val));
-            }
-        }
-
-        function updateCurrentRequestField(field, value) {
-            const req = requests.find(r => r.id === currentRequestId);
-            if (!req) return;
-            req[field] = value;
-            renderRequestsList();
-        }
-
-        function saveCurrentHeaders() {
-            const req = requests.find(r => r.id === currentRequestId);
-            if (!req) return;
-            const headers = [];
-            document.querySelectorAll('.header-row').forEach(row => {
-                const k = row.querySelector('.header-key').value.trim();
-                const v = row.querySelector('.header-val').value.trim();
-                if (k || v) headers.push({ key: k, val: v });
-            });
-            req.headers = headers;
-            saveStorage();
-            updateHeaderCount();
-        }
-
-        function addHeaderRowToDOM(key = '', val = '') {
-            const container = document.getElementById('headers-container');
-            const div = document.createElement('div');
-            div.className = "flex items-center space-x-2 header-row";
-            div.innerHTML = `
-                <input type="text" placeholder="Chave (ex: Authorization)" oninput="saveCurrentHeaders()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 header-key" value="${key}">
-                <input type="text" placeholder="Valor (ex: Bearer token...)" oninput="saveCurrentHeaders()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 header-val" value="${val}">
-                <button onclick="removeHeaderRow(this)" class="text-gray-500 hover:text-red-400 p-2 transition">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            `;
-            container.appendChild(div);
-        }
-
-        function addHeaderRow() {
-            addHeaderRowToDOM('', '');
-        }
-
-        function removeHeaderRow(btn) {
-            btn.closest('.header-row').remove();
-            saveCurrentHeaders();
-        }
-
-        function updateHeaderCount() {
-            const count = document.querySelectorAll('.header-row').length;
-            document.getElementById('header-count').innerText = count;
-        }
-
-        function saveCurrentFormData() {
-            const req = requests.find(r => r.id === currentRequestId);
-            if (!req) return;
-            const formDataArr = [];
-            document.querySelectorAll('.formdata-row').forEach(row => {
-                const type = row.querySelector('.fd-type').value;
-                const k = row.querySelector('.fd-key').value.trim();
-                const v = row.querySelector('.fd-val') ? row.querySelector('.fd-val').value.trim() : '';
-                if (k) formDataArr.push({ type, key: k, val: v });
-            });
-            req.formData = formDataArr;
-            saveStorage();
-        }
-
-        function addFormDataRowToDOM(type = 'text', key = '', val = '') {
-            const container = document.getElementById('formdata-container');
-            const div = document.createElement('div');
-            div.className = "flex items-center space-x-2 formdata-row";
-            
-            const isFile = type === 'file';
-            div.innerHTML = `
-                <select onchange="onFormDataRowTypeChange(this); saveCurrentFormData();" class="bg-insomnia-panel border border-insomnia-border rounded-lg px-2 py-1.5 text-xs text-indigo-300 font-medium focus:outline-none h-9 fd-type">
-                    <option value="text" ${!isFile ? 'selected' : ''}>Texto</option>
-                    <option value="file" ${isFile ? 'selected' : ''}>Arquivo</option>
-                </select>
-                <input type="text" placeholder="Nome do campo" oninput="saveCurrentFormData()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 fd-key" value="${key}">
-                ${isFile ? 
-                    `<input type="file" onchange="saveCurrentFormData()" class="flex-1 text-xs text-gray-400 file:mr-4 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-950 file:text-indigo-300 hover:file:bg-indigo-900 fd-val">` :
-                    `<input type="text" placeholder="Valor do campo" oninput="saveCurrentFormData()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 fd-val" value="${val}">`
-                }
-                <button onclick="removeFormDataRow(this)" class="text-gray-500 hover:text-red-400 p-2 transition">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            `;
-            container.appendChild(div);
-        }
-
-        function addFormDataRow() {
-            addFormDataRowToDOM('text', '', '');
-        }
-
-        function onFormDataRowTypeChange(selectEl) {
-            const row = selectEl.closest('.formdata-row');
-            const type = selectEl.value;
-            const keyInput = row.querySelector('.fd-key').value;
-            row.remove();
-            addFormDataRowToDOM(type, keyInput, '');
-        }
-
-        function removeFormDataRow(btn) {
-            btn.closest('.formdata-row').remove();
-            saveCurrentFormData();
-        }
-
-        // Gerenciamento de Pastas
-        function openNewFolderModal() {
-            document.getElementById('new-folder-name').value = '';
-            document.getElementById('folder-modal').classList.remove('hidden');
-        }
-
-        function closeFolderModal() {
-            document.getElementById('folder-modal').classList.add('hidden');
-        }
-
-        function createFolder() {
-            const nameInput = document.getElementById('new-folder-name').value.trim();
-            if (!nameInput) return;
-            const newFolder = {
-                id: 'fol_' + Date.now(),
-                name: nameInput
-            };
-            folders.push(newFolder);
-            saveStorage();
-            closeFolderModal();
-            renderRequestsList();
-        }
-
-        function deleteFolder(folderId) {
-            if (folders.length <= 1) return;
-            if (!confirm('Deseja realmente excluir esta pasta e todas as requisições associadas?')) return;
-            
-            folders = folders.filter(f => f.id !== folderId);
-            requests = requests.filter(r => r.folderId !== folderId);
-            
-            if (!requests.some(r => r.id === currentRequestId) && requests.length > 0) {
-                currentRequestId = requests[0].id;
-                loadRequestToUI(currentRequestId);
-            }
-            saveStorage();
-            renderRequestsList();
-        }
-
-        function addNewRequestToFolder(folderId) {
-            const newId = 'req_' + Date.now();
-            const newReq = {
-                id: newId,
-                folderId: folderId,
-                name: 'Nova Requisição',
-                method: 'GET',
-                url: '',
-                body: '',
-                bodyType: 'json',
-                headers: [{key: 'Content-Type', val: 'application/json'}],
-                formData: []
-            };
-            requests.unshift(newReq);
-            selectRequest(newId);
-        }
-
-        function addNewRequest() {
-            const targetFolderId = folders[0]?.id || 'fol_geral';
-            addNewRequestToFolder(targetFolderId);
-        }
-
-        function deleteRequest(id) {
-            if (requests.length <= 1) return;
-            requests = requests.filter(r => r.id !== id);
-            if (currentRequestId === id) {
-                currentRequestId = requests[0].id;
-                loadRequestToUI(currentRequestId);
-            }
-            renderRequestsList();
-        }
-
-        // Gerenciamento de Ambientes
-        function renderEnvSelectors() {
-            const activeSelect = document.getElementById('active-env-select');
-            activeSelect.innerHTML = '';
-            environments.forEach(env => {
-                const opt = document.createElement('option');
-                opt.value = env.id;
-                opt.innerText = env.name;
-                if (env.id === activeEnvId) opt.selected = true;
-                activeSelect.appendChild(opt);
-            });
-
-            const modalSelect = document.getElementById('modal-env-select');
-            modalSelect.innerHTML = '';
-            environments.forEach(env => {
-                const opt = document.createElement('option');
-                opt.value = env.id;
-                opt.innerText = env.name;
-                if (env.id === modalSelectedEnvId) opt.selected = true;
-                modalSelect.appendChild(opt);
-            });
-
-            const currentEnvObj = environments.find(e => e.id === activeEnvId) || environments[0];
-            document.getElementById('env-count').innerText = currentEnvObj.variables.length;
-
-            const deleteBtn = document.getElementById('delete-env-btn');
-            if (environments.length > 1) {
-                deleteBtn.classList.remove('hidden');
-            } else {
-                deleteBtn.classList.add('hidden');
-            }
-        }
-
-        function switchActiveEnvironment(envId) {
-            activeEnvId = envId;
-            localStorage.setItem('rest_client_active_env', activeEnvId);
-            renderEnvSelectors();
-        }
-
-        function selectModalEnv(envId) {
-            modalSelectedEnvId = envId;
-            renderEnvRows();
-        }
-
-        function addNewEnvironment() {
-            const name = prompt('Nome do novo ambiente (ex: Staging, QA):');
-            if (!name || !name.trim()) return;
-            const newEnv = {
-                id: 'env_' + Date.now(),
-                name: name.trim(),
-                variables: [{key: 'baseUrl', val: 'https://api.staging.com'}]
-            };
-            environments.push(newEnv);
-            modalSelectedEnvId = newEnv.id;
-            activeEnvId = newEnv.id;
-            saveEnvironmentsToStorage();
-            renderEnvSelectors();
-            renderEnvRows();
-        }
-
-        function deleteCurrentEnvironment() {
-            if (environments.length <= 1) return;
-            if (!confirm(`Deseja realmente excluir o ambiente?`)) return;
-            
-            environments = environments.filter(e => e.id !== modalSelectedEnvId);
-            modalSelectedEnvId = environments[0].id;
-            if (activeEnvId === modalSelectedEnvId) {
-                activeEnvId = environments[0].id;
-            }
-            saveEnvironmentsToStorage();
-            renderEnvSelectors();
-            renderEnvRows();
-        }
-
-        function saveEnvironmentsToStorage() {
-            localStorage.setItem('rest_client_environments', JSON.stringify(environments));
-            localStorage.setItem('rest_client_active_env', activeEnvId);
-        }
-
-        function openEnvModal() {
-            modalSelectedEnvId = activeEnvId;
-            document.getElementById('env-modal').classList.remove('hidden');
-            renderEnvSelectors();
-            renderEnvRows();
-        }
-
-        function closeEnvModal() {
-            document.getElementById('env-modal').classList.add('hidden');
-            renderEnvSelectors();
-        }
-
-        function renderEnvRows() {
-            const container = document.getElementById('env-container');
-            container.innerHTML = '';
-            
-            const envObj = environments.find(e => e.id === modalSelectedEnvId);
-            if (!envObj || !envObj.variables || envObj.variables.length === 0) {
-                container.innerHTML = '<span class="text-xs text-gray-500">Nenhuma variável definida neste ambiente.</span>';
-                return;
-            }
-
-            envObj.variables.forEach((env, index) => {
-                const div = document.createElement('div');
-                div.className = "flex items-center space-x-2 env-row";
-                div.innerHTML = `
-                    <input type="text" placeholder="Nome (ex: baseUrl)" oninput="saveEnvVariables()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 env-key" value="${env.key}">
-                    <input type="text" placeholder="Valor" oninput="saveEnvVariables()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 env-val" value="${env.val}">
-                    <button onclick="removeEnvRow(${index})" class="text-gray-500 hover:text-red-400 p-2 transition">
-                        <i class="fa-solid fa-trash"></i>
+        function renderProductModal() {
+            const prod = selectedProduct;
+            productModalContent.innerHTML = `
+                <div class="h-48 rounded-2xl overflow-hidden mb-4 shadow-inner">
+                    <img src="${prod.photo}" alt="${prod.name}" class="w-full h-full object-cover">
+                </div>
+                <span class="bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded-md">${prod.categoryName}</span>
+                <h3 class="text-xl font-black text-slate-900 mt-2">${prod.name}</h3>
+                <p class="text-slate-500 text-xs mt-1 leading-relaxed">${prod.description}</p>
+                <div class="my-6 pt-4 border-t border-slate-100">
+                    <label class="text-xs font-black uppercase text-slate-400 tracking-wider">Observações para o item</label>
+                    <textarea id="prodObs" placeholder="Ex: Sem cebola..." class="w-full mt-2 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs focus:ring-2 focus:ring-red-600 focus:outline-none" rows="2"></textarea>
+                </div>
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                    <div class="flex items-center space-x-3 bg-slate-100 p-1.5 rounded-2xl">
+                        <button id="qtyMinus" class="w-8 h-8 bg-white rounded-xl font-black text-slate-700 shadow-sm flex items-center justify-center">-</button>
+                        <span id="qtyValue" class="font-black text-sm w-6 text-center">${modalQuantity}</span>
+                        <button id="qtyPlus" class="w-8 h-8 bg-white rounded-xl font-black text-slate-700 shadow-sm flex items-center justify-center">+</button>
+                    </div>
+                    <button id="addToCartBtn" class="flex-1 ml-4 bg-red-600 hover:bg-red-700 text-white py-3.5 px-6 rounded-2xl font-black text-xs shadow-lg shadow-red-600/30 transition flex justify-between items-center">
+                        <span>Adicionar à Sacola</span>
+                        <span>R$ ${(prod.price * modalQuantity).toFixed(2)}</span>
                     </button>
-                `;
-                container.appendChild(div);
+                </div>
+            `;
+            document.getElementById('qtyMinus').addEventListener('click', () => {
+                if (modalQuantity > 1) modalQuantity--;
+                renderProductModal();
+            });
+            document.getElementById('qtyPlus').addEventListener('click', () => {
+                modalQuantity++;
+                renderProductModal();
+            });
+            document.getElementById('addToCartBtn').addEventListener('click', () => {
+                modalObservation = document.getElementById('prodObs').value;
+                addToCart(selectedProduct, modalQuantity, modalObservation);
+                productModal.classList.add('hidden');
             });
         }
 
-        function addEnvRow() {
-            const envObj = environments.find(e => e.id === modalSelectedEnvId);
-            if (envObj) {
-                envObj.variables.push({key: '', val: ''});
-                renderEnvRows();
-            }
-        }
-
-        function removeEnvRow(index) {
-            const envObj = environments.find(e => e.id === modalSelectedEnvId);
-            if (envObj) {
-                envObj.variables.splice(index, 1);
-                renderEnvRows();
-                saveEnvVariables();
-            }
-        }
-
-        function saveEnvVariables() {
-            const envObj = environments.find(e => e.id === modalSelectedEnvId);
-            if (!envObj) return;
-            const vars = [];
-            document.querySelectorAll('.env-row').forEach(row => {
-                const k = row.querySelector('.env-key').value.trim();
-                const v = row.querySelector('.env-val').value.trim();
-                if (k) vars.push({ key: k, val: v });
+        function addToCart(prod, qty, obs) {
+            cart.push({
+                id: prod.id,
+                name: prod.name,
+                price: prod.price,
+                quantity: qty,
+                observation: obs
             });
-            envObj.variables = vars;
-            saveEnvironmentsToStorage();
-            renderEnvSelectors();
+            updateCartBar();
         }
 
-        function replaceEnvVariables(str) {
-            if (!str) return str;
-            const activeEnvObj = environments.find(e => e.id === activeEnvId) || environments[0];
-            let result = str;
-            if (activeEnvObj && activeEnvObj.variables) {
-                activeEnvObj.variables.forEach(env => {
-                    if (env.key) {
-                        const regex = new RegExp(`{{\\s*${env.key}\\s*}}`, 'g');
-                        result = result.replace(regex, env.val);
-                    }
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartBar();
+            renderCartPanel();
+        }
+
+        function updateCartBar() {
+            const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
+            const totalPrice = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+
+            cartBar.classList.toggle('hidden', cart.length === 0);
+            cartCountBadge.textContent = totalItems;
+            cartItemLabel.textContent = `${cart.length} ${cart.length === 1 ? 'item' : 'itens'}`;
+            cartTotalText.textContent = `R$ ${totalPrice.toFixed(2)}`;
+        }
+
+        function renderCartPanel() {
+            cartItemsList.innerHTML = '';
+            if (cart.length === 0) {
+                cartItemsList.innerHTML = '<p class="text-center text-slate-400 text-sm py-6">Sua sacola está vazia</p>';
+            } else {
+                cart.forEach((item, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex justify-between items-start';
+                    el.innerHTML = `
+                        <div class="flex-1 pr-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-5 h-5 bg-red-100 text-red-600 rounded flex items-center justify-center text-[10px] font-black">${item.quantity}x</span>
+                                <h4 class="font-bold text-slate-800 text-xs">${item.name}</h4>
+                            </div>
+                            ${item.observation ? `<p class="text-[11px] text-slate-400 mt-1">Obs: ${item.observation}</p>` : ''}
+                            <span class="text-xs font-black text-emerald-600 mt-1 block">R$ ${(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                        <button data-idx="${idx}" class="text-slate-300 hover:text-red-500 font-bold text-xs p-1 remove-item">Remover</button>
+                    `;
+                    cartItemsList.appendChild(el);
+                });
+                document.querySelectorAll('.remove-item').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        removeFromCart(parseInt(e.target.dataset.idx));
+                    });
                 });
             }
-            return result;
+            const totalPrice = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+            panelTotal.textContent = `R$ ${totalPrice.toFixed(2)}`;
         }
 
-        function formatJSON() {
-            const textarea = document.getElementById('request-body');
-            try {
-                if (!textarea.value.trim()) return;
-                const parsed = JSON.parse(textarea.value);
-                textarea.value = JSON.stringify(parsed, null, 2);
-                updateCurrentRequestField('body', textarea.value);
-            } catch (e) {
-                // Ignore invalid json
+        function sendToWhatsApp() {
+            const clientName = document.getElementById('clientName').value.trim();
+            const orderType = document.getElementById('orderType').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const deliveryAddress = document.getElementById('deliveryAddress').value.trim();
+
+            if (!clientName) {
+                alert('Digite seu nome!');
+                return;
             }
-        }
-
-        function loadPreset(method, url, body) {
-            const req = requests.find(r => r.id === currentRequestId);
-            if (req) {
-                req.method = method;
-                req.url = url;
-                req.body = body;
-                req.bodyType = 'json';
-                req.name = method === 'GET' ? 'API GET Exemplo' : 'API POST Exemplo';
-            }
-            loadRequestToUI(currentRequestId);
-            renderRequestsList();
-            switchTab('body');
-        }
-
-        async function sendRequest() {
-            const method = document.getElementById('request-method').value;
-            let rawUrl = document.getElementById('request-url').value.trim();
-            const url = replaceEnvVariables(rawUrl);
-            const bodyContent = replaceEnvVariables(document.getElementById('request-body').value);
-
-            if (!url) {
-                alertBox('Por favor, informe uma URL válida.');
+            if (cart.length === 0) {
+                alert('Sua sacola está vazia!');
                 return;
             }
 
-            const headers = {};
-            document.querySelectorAll('.header-row').forEach(row => {
-                const k = row.querySelector('.header-key').value.trim();
-                const v = replaceEnvVariables(row.querySelector('.header-val').value.trim());
-                if (k) headers[k] = v;
+            // MENSAGEM LIMPA E DIRETA
+            let message = `PEDIDO - GOMES BURGER\n`;
+            message += `═══════════════════════\n`;
+            message += `Nome: ${clientName}\n`;
+            message += `Tipo: ${orderType === 'DELIVERY' ? 'Delivery' : 'Retirada'}\n`;
+            if (orderType === 'DELIVERY') {
+                message += `Endereço: ${deliveryAddress || 'Não informado'}\n`;
+            }
+
+            const formaPagamento = {
+                'PIX': 'Pix',
+                'CARTAO': 'Cartão na Entrega',
+                'DINHEIRO': 'Dinheiro'
+            }[paymentMethod];
+
+            message += `Pagamento: ${formaPagamento}\n`;
+            message += `═══════════════════════\n`;
+
+            const totalPrice = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+            cart.forEach((item, n) => {
+                message += `${n + 1}. ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
+                if (item.observation) message += `   Obs: ${item.observation}\n`;
             });
 
-            document.getElementById('response-placeholder').classList.add('hidden');
-            document.getElementById('response-output').classList.add('hidden');
-            document.getElementById('response-status').classList.add('hidden');
-            document.getElementById('response-time').classList.add('hidden');
-            document.getElementById('response-loader').classList.remove('hidden');
+            message += `═══════════════════════\n`;
+            message += `TOTAL: R$ ${totalPrice.toFixed(2)}`;
 
-            const startTime = performance.now();
+            // ✅ ABRE DIRETO NO SEU WHATSAPP
+            const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
-            try {
-                const options = { method: method };
-                const req = requests.find(r => r.id === currentRequestId);
-                
-                if (req && req.bodyType === 'formdata') {
-                    const formData = new FormData();
-                    document.querySelectorAll('.formdata-row').forEach(row => {
-                        const type = row.querySelector('.fd-type').value;
-                        const k = row.querySelector('.fd-key').value.trim();
-                        if (!k) return;
-                        
-                        if (type === 'file') {
-                            const fileInput = row.querySelector('.fd-val');
-                            if (fileInput && fileInput.files && fileInput.files[0]) {
-                                formData.append(k, fileInput.files[0]);
-                            }
-                        } else {
-                            const valInput = row.querySelector('.fd-val');
-                            const v = valInput ? replaceEnvVariables(valInput.value) : '';
-                            formData.append(k, v);
-                        }
-                    });
-                    options.body = formData;
-                    delete headers['Content-Type'];
-                    delete headers['content-type'];
-                } else {
-                    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && bodyContent) {
-                        options.body = bodyContent;
-                    }
-                    options.headers = headers;
-                }
+            // AVISO RÁPIDO
+            // alert('✅ Pronto! Vai abrir o WhatsApp → é só clicar na SETA VERDE!');
 
-                if (req && req.bodyType !== 'formdata') {
-                    options.headers = headers;
-                }
-
-                const response = await fetch(url, options);
-                const endTime = performance.now();
-                const duration = Math.round(endTime - startTime);
-
-                const responseText = await response.text();
-                let formattedOutput = responseText;
-                
-                try {
-                    const jsonParsed = JSON.parse(responseText);
-                    formattedOutput = JSON.stringify(jsonParsed, null, 2);
-                } catch (e) {
-                    // Mantém texto puro
-                }
-
-                const statusCodeEl = document.getElementById('status-code');
-                const statusDotEl = document.getElementById('status-dot');
-                const statusBadge = document.getElementById('response-status');
-                
-                statusCodeEl.innerText = `${response.status} ${response.statusText || ''}`;
-                statusBadge.classList.remove('hidden');
-                
-                if (response.ok) {
-                    statusBadge.className = "text-xs font-bold px-2 py-0.5 rounded flex items-center space-x-1.5 bg-emerald-950 text-emerald-400 border border-emerald-800";
-                    statusDotEl.className = "w-2 h-2 rounded-full bg-emerald-400";
-                } else {
-                    statusBadge.className = "text-xs font-bold px-2 py-0.5 rounded flex items-center space-x-1.5 bg-rose-950 text-rose-400 border border-rose-800";
-                    statusDotEl.className = "w-2 h-2 rounded-full bg-rose-400";
-                }
-
-                const timeEl = document.getElementById('response-time');
-                timeEl.innerText = `${duration} ms`;
-                timeEl.classList.remove('hidden');
-
-                const resHeadersContainer = document.getElementById('response-headers-output');
-                resHeadersContainer.innerHTML = '';
-                response.headers.forEach((val, key) => {
-                    const div = document.createElement('div');
-                    div.innerHTML = `<span class="text-indigo-300">${key}:</span> <span class="text-gray-300">${val}</span>`;
-                    resHeadersContainer.appendChild(div);
-                });
-
-                document.getElementById('response-loader').classList.add('hidden');
-                const outputEl = document.getElementById('response-output');
-                outputEl.innerText = formattedOutput;
-                outputEl.classList.remove('hidden');
-
-            } catch (error) {
-                document.getElementById('response-loader').classList.add('hidden');
-                const outputEl = document.getElementById('response-output');
-                outputEl.innerText = `Erro na Requisição / CORS:\n${error.message}\n\nNota: Devido às políticas de segurança do navegador (CORS), algumas APIs externas bloqueiam requisições diretas feitas via browser a menos que possuam os headers corretos.`;
-                outputEl.className = "text-xs font-mono text-rose-400 whitespace-pre-wrap break-all";
-                outputEl.classList.remove('hidden');
-                
-                const statusBadge = document.getElementById('response-status');
-                statusBadge.className = "text-xs font-bold px-2 py-0.5 rounded flex items-center space-x-1.5 bg-rose-950 text-rose-400 border border-rose-800";
-                document.getElementById('status-code').innerText = "Erro CORS/Rede";
-                statusBadge.classList.remove('hidden');
-            }
-        }
-
-        function copyResponse() {
-            const outputText = document.getElementById('response-output').innerText;
-            if (!outputText) return;
-            const textarea = document.createElement('textarea');
-            textarea.value = outputText;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            
-            const btn = document.querySelector('[title="Copiar resposta"]');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i>';
-            setTimeout(() => btn.innerHTML = originalHTML, 1500);
-        }
-
-        function alertBox(msg) {
-            const div = document.createElement('div');
-            div.className = "fixed bottom-5 right-5 bg-zinc-900 border border-indigo-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 z-50 text-xs animate-bounce";
-            div.innerHTML = `<i class="fa-solid fa-circle-exclamation text-indigo-400 text-base"></i><span>${msg}</span>`;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 3000);
+            window.open(url, '_blank');
         }
     </script>
 </body>
+
 </html>

@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Client Web - Estilo Insomnia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        insomnia: {
+                            dark: '#1e1e24',
+                            darker: '#141417',
+                            panel: '#272730',
+                            accent: '#6366f1',
+                            accentHover: '#4f46e5',
+                            border: '#3f3f46'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #141417; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+    </style>
+</head>
+<body class="h-full bg-insomnia-darker text-gray-100 flex flex-col overflow-hidden">
+
+    <header class="bg-insomnia-dark border-b border-insomnia-border h-14 flex items-center justify-between px-4 shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg flex items-center justify-center font-bold shadow-lg">
+                <i class="fa-solid fa-bolt text-lg"></i>
+            </div>
+            <h1 class="font-bold text-lg tracking-wide text-white">Rest<span class="text-indigo-400">Client</span></h1>
+            <span class="text-xs bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-800">Pastas & Variáveis</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <!-- Ambiente Ativo -->
+            <div class="flex items-center space-x-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-2 py-1">
+                <i class="fa-solid fa-layer-group text-indigo-400 text-xs"></i>
+                <select id="active-env-select" onchange="switchActiveEnvironment(this.value)" class="bg-transparent text-xs text-gray-200 focus:outline-none cursor-pointer font-medium">
+                    <!-- Populated via JS -->
+                </select>
+            </div>
+            <button onclick="openEnvModal()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-gray-200 px-3 py-1.5 rounded-lg border border-insomnia-border transition flex items-center space-x-1.5 shadow">
+                <i class="fa-solid fa-code text-indigo-400 text-xs"></i>
+                <span>Variáveis Globais (<span id="env-count">0</span>)</span>
+            </button>
+            <button onclick="openNewFolderModal()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-gray-200 px-3 py-1.5 rounded-lg border border-insomnia-border transition flex items-center space-x-1.5 shadow">
+                <i class="fa-solid fa-folder-plus text-indigo-400 text-xs"></i>
+                <span>Nova Pasta</span>
+            </button>
+            <button onclick="addNewRequest()" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5 shadow">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>Nova Requisição</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- Sidebar com Pastas e Requisições -->
+        <aside class="w-80 bg-insomnia-dark border-r border-insomnia-border flex flex-col shrink-0 select-none">
+            <div class="p-3 border-b border-insomnia-border flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center space-x-2">
+                    <i class="fa-solid fa-folder-open text-indigo-400"></i>
+                    <span>Coleções & Projetos</span>
+                </span>
+                <span id="request-count" class="text-xs bg-zinc-800 px-2 py-0.5 rounded text-gray-400">0</span>
+            </div>
+            <div id="requests-list" class="flex-1 overflow-y-auto p-2 space-y-2">
+                <!-- Items populated via JS -->
+            </div>
+        </aside>
+
+        <!-- Main Content Panel -->
+        <main class="flex-1 flex flex-col bg-insomnia-darker overflow-hidden">
+            
+            <!-- URL and Method Bar -->
+            <div class="p-4 bg-insomnia-dark border-b border-insomnia-border flex flex-wrap gap-2 items-center">
+                <div class="relative w-32">
+                    <select id="request-method" onchange="updateCurrentRequestField('method', this.value)" class="w-full bg-insomnia-panel border border-insomnia-border text-sm font-semibold rounded-lg px-3 py-2.5 focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer">
+                        <option value="GET" class="text-emerald-400 font-bold">GET</option>
+                        <option value="POST" class="text-amber-400 font-bold">POST</option>
+                        <option value="PUT" class="text-blue-400 font-bold">PUT</option>
+                        <option value="DELETE" class="text-rose-400 font-bold">DELETE</option>
+                        <option value="PATCH" class="text-purple-400 font-bold">PATCH</option>
+                    </select>
+                    <div class="absolute right-3 top-3.5 pointer-events-none text-gray-400 text-xs">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex items-center bg-insomnia-panel border border-insomnia-border rounded-lg overflow-hidden focus-within:border-indigo-500">
+                    <span class="pl-3.5 text-gray-400 text-sm">
+                        <i class="fa-solid fa-globe"></i>
+                    </span>
+                    <input type="text" id="request-url" oninput="updateCurrentRequestField('url', this.value)" placeholder="https://api.exemplo.com/v1/dados ou {{baseUrl}}/endpoint" 
+                        class="w-full bg-transparent px-3 py-2.5 text-sm focus:outline-none text-gray-100 placeholder-gray-500 font-mono">
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="request-name" oninput="updateCurrentRequestField('name', this.value)" placeholder="Nome" 
+                        class="bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-indigo-500 w-32 font-medium" title="Nome da requisição">
+                    
+                    <button onclick="sendRequest()" id="send-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-2.5 rounded-lg transition flex items-center space-x-2 shadow-lg shadow-indigo-600/20 active:scale-95">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                        <span>Enviar</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                
+                <!-- Request Config Section (Left/Top half) -->
+                <div class="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-insomnia-border bg-insomnia-darker overflow-hidden">
+                    <div class="flex border-b border-insomnia-border bg-insomnia-dark px-2 shrink-0 overflow-x-auto">
+                        <button onclick="switchTab('body')" id="tab-body" class="px-4 py-2.5 text-xs font-semibold border-b-2 border-indigo-500 text-indigo-400 transition whitespace-nowrap">Corpo (JSON)</button>
+                        <button onclick="switchTab('formdata')" id="tab-formdata" class="px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap">Form-Data (Arquivos)</button>
+                        <button onclick="switchTab('headers')" id="tab-headers" class="px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap">Cabeçalhos (<span id="header-count">0</span>)</button>
+                        <button onclick="switchTab('params')" id="tab-params" class="px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap">Exemplos Prontos</button>
+                    </div>
+
+                    <!-- Body Editor Pane -->
+                    <div id="pane-body" class="flex-1 flex flex-col p-3 overflow-hidden">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-gray-400 font-medium">Payload JSON / Texto (Suporta <code class="text-indigo-400">{{variavel}}</code>):</span>
+                            <button onclick="formatJSON()" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center space-x-1">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span>Formatar JSON</span>
+                            </button>
+                        </div>
+                        <textarea id="request-body" oninput="updateCurrentRequestField('body', this.value)" placeholder="{&#10;  &quot;chave&quot;: &quot;{{token}}&quot;&#10;}" 
+                            class="flex-1 w-full bg-insomnia-panel border border-insomnia-border rounded-lg p-3 text-sm font-mono text-gray-200 focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+                    </div>
+
+                    <!-- Form-Data / Multipart Pane -->
+                    <div id="pane-formdata" class="flex-1 flex flex-col p-3 overflow-y-auto hidden">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-gray-400 font-medium">Campos e Arquivos/Imagens (multipart/form-data):</span>
+                            <button onclick="addFormDataRow(); saveCurrentFormData();" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-indigo-400 px-2.5 py-1 rounded border border-insomnia-border transition flex items-center space-x-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                <span>Novo Campo/Arquivo</span>
+                            </button>
+                        </div>
+                        <div id="formdata-container" class="space-y-2">
+                            <!-- Dynamic FormData rows -->
+                        </div>
+                    </div>
+
+                    <!-- Headers Editor Pane -->
+                    <div id="pane-headers" class="flex-1 flex flex-col p-3 overflow-y-auto hidden">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-gray-400 font-medium">Headers Personalizados (Chave / Valor):</span>
+                            <button onclick="addHeaderRow(); saveCurrentHeaders();" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-indigo-400 px-2.5 py-1 rounded border border-insomnia-border transition flex items-center space-x-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                <span>Novo Header</span>
+                            </button>
+                        </div>
+                        <div id="headers-container" class="space-y-2">
+                            <!-- Header dynamic rows -->
+                        </div>
+                    </div>
+
+                    <!-- Presets / Quick APIs Pane -->
+                    <div id="pane-params" class="flex-1 flex flex-col p-3 overflow-y-auto hidden space-y-3">
+                        <span class="text-xs text-gray-400 font-medium">Clique em uma API pública para testar instantaneamente:</span>
+                        
+                        <div onclick="loadPreset('GET', 'https://jsonplaceholder.typicode.com/todos/1', '')" class="bg-insomnia-panel hover:bg-zinc-800 border border-insomnia-border rounded-lg p-3 cursor-pointer transition flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <span class="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800">GET</span>
+                                    <span class="text-xs font-semibold text-gray-200">JSONPlaceholder - Tarefa #1</span>
+                                </div>
+                                <span class="text-[11px] text-gray-500 font-mono">https://jsonplaceholder.typicode.com/todos/1</span>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-gray-500 text-xs"></i>
+                        </div>
+
+                        <div onclick="loadPreset('GET', 'https://httpbin.org/ip', '')" class="bg-insomnia-panel hover:bg-zinc-800 border border-insomnia-border rounded-lg p-3 cursor-pointer transition flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <span class="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800">GET</span>
+                                    <span class="text-xs font-semibold text-gray-200">HTTPBin - Meu IP</span>
+                                </div>
+                                <span class="text-[11px] text-gray-500 font-mono">https://httpbin.org/ip</span>
+                            </div>
+                            <i class="fa-solid fa-arrow-right text-gray-500 text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Response Section -->
+                <div class="flex-1 flex flex-col bg-insomnia-darker overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2.5 bg-insomnia-dark border-b border-insomnia-border shrink-0">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Resposta</span>
+                            <div id="response-status" class="hidden text-xs font-bold px-2 py-0.5 rounded flex items-center space-x-1.5">
+                                <span id="status-dot" class="w-2 h-2 rounded-full"></span>
+                                <span id="status-code">000</span>
+                            </div>
+                            <span id="response-time" class="text-xs text-gray-400 hidden font-mono"></span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="switchResTab('body')" id="res-tab-body" class="text-xs text-indigo-400 font-medium px-2 py-1 rounded bg-indigo-950/50 border border-indigo-800 transition">Corpo</button>
+                            <button onclick="switchResTab('headers')" id="res-tab-headers" class="text-xs text-gray-400 font-medium px-2 py-1 rounded hover:bg-zinc-800 transition">Headers</button>
+                            <button onclick="copyResponse()" title="Copiar resposta" class="text-xs text-gray-400 hover:text-gray-200 px-2 py-1 rounded hover:bg-zinc-800 transition">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Response Body View -->
+                    <div id="res-pane-body" class="flex-1 p-3 overflow-auto">
+                        <div id="response-placeholder" class="h-full flex flex-col items-center justify-center text-gray-500 space-y-2 py-12">
+                            <i class="fa-solid fa-terminal text-3xl text-zinc-700"></i>
+                            <p class="text-xs">Insira uma URL e clique em Enviar para inspecionar a resposta</p>
+                        </div>
+                        <div id="response-loader" class="hidden h-full flex flex-col items-center justify-center text-indigo-400 space-y-3 py-12">
+                            <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
+                            <p class="text-xs text-gray-400">Aguardando resposta do servidor...</p>
+                        </div>
+                        <pre id="response-output" class="hidden text-xs font-mono text-emerald-400 whitespace-pre-wrap break-all"></pre>
+                    </div>
+
+                    <!-- Response Headers View -->
+                    <div id="res-pane-headers" class="flex-1 p-3 overflow-auto hidden">
+                        <div id="response-headers-output" class="text-xs font-mono text-gray-300 space-y-1">
+                            <span class="text-gray-500">Nenhum header retornado ainda.</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Variáveis Globais & Ambientes -->
+    <div id="env-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-insomnia-dark border border-insomnia-border rounded-xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
+            <div class="p-4 border-b border-insomnia-border flex items-center justify-between bg-insomnia-panel/50">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-code text-indigo-400"></i>
+                    <h3 class="font-bold text-sm text-white">Gerenciador de Ambientes e Variáveis</h3>
+                </div>
+                <button onclick="closeEnvModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <div class="p-4 flex-1 overflow-y-auto space-y-4">
+                <div class="flex flex-col space-y-2">
+                    <label class="text-xs text-gray-400 font-medium">Selecione o Ambiente para Editar:</label>
+                    <div class="flex items-center space-x-2">
+                        <select id="modal-env-select" onchange="selectModalEnv(this.value)" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-indigo-500 font-medium">
+                            <!-- Populated via JS -->
+                        </select>
+                        <button onclick="addNewEnvironment()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-indigo-400 px-3 py-2 rounded-lg border border-insomnia-border transition flex items-center space-x-1">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span>Novo</span>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="text-xs text-gray-400">
+                    Defina variáveis para o ambiente atual (ex: <code class="text-indigo-400">baseUrl</code> = <code class="text-indigo-400">https://api.exemplo.com</code>). Use nos campos com <code class="text-indigo-400">{{variavel}}</code>.
+                </p>
+                <div class="flex justify-between items-center pt-2">
+                    <span class="text-xs font-semibold text-gray-300">Variáveis (Chave / Valor):</span>
+                    <button onclick="addEnvRow(); saveEnvVariables();" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-indigo-400 px-2.5 py-1 rounded border border-insomnia-border transition flex items-center space-x-1">
+                        <i class="fa-solid fa-plus text-[10px]"></i>
+                        <span>Adicionar Variável</span>
+                    </button>
+                </div>
+                <div id="env-container" class="space-y-2">
+                    <!-- Dynamic env rows -->
+                </div>
+            </div>
+            <div class="p-4 border-t border-insomnia-border bg-insomnia-panel/50 flex justify-between items-center">
+                <button id="delete-env-btn" onclick="deleteCurrentEnvironment()" class="text-xs text-rose-400 hover:text-rose-300 transition hidden flex items-center space-x-1">
+                    <i class="fa-solid fa-trash text-[10px]"></i>
+                    <span>Excluir este Ambiente</span>
+                </button>
+                <button onclick="closeEnvModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-xs transition shadow ml-auto">
+                    Salvar e Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Criar Pasta -->
+    <div id="folder-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-insomnia-dark border border-insomnia-border rounded-xl w-full max-w-sm shadow-2xl flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-insomnia-border flex items-center justify-between bg-insomnia-panel/50">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-folder-plus text-indigo-400"></i>
+                    <h3 class="font-bold text-sm text-white">Criar Nova Pasta / Projeto</h3>
+                </div>
+                <button onclick="closeFolderModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <div class="p-4 space-y-3">
+                <label class="text-xs text-gray-400 font-medium">Nome da Pasta (ex: Autenticação, Usuários):</label>
+                <input type="text" id="new-folder-name" placeholder="Nome do projeto..." class="w-full bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-indigo-500 font-medium">
+            </div>
+            <div class="p-4 border-t border-insomnia-border bg-insomnia-panel/50 flex justify-end space-x-2">
+                <button onclick="closeFolderModal()" class="bg-zinc-800 hover:bg-zinc-700 text-gray-300 px-3 py-1.5 rounded-lg text-xs transition">Cancelar</button>
+                <button onclick="createFolder()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-1.5 rounded-lg text-xs transition shadow">Criar Pasta</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estrutura de Pastas e Requisições
+        let folders = JSON.parse(localStorage.getItem('rest_client_folders') || 'null');
+        let requests = JSON.parse(localStorage.getItem('rest_client_saved_reqs') || 'null');
+
+        if (!folders) {
+            folders = [
+                { id: 'fol_geral', name: 'Geral / Padrão' },
+                { id: 'fol_auth', name: 'Autenticação & Usuários' }
+            ];
+        }
+
+        if (!requests || requests.length === 0) {
+            requests = [
+                {
+                    id: 'req_1',
+                    folderId: 'fol_geral',
+                    name: 'Exemplo GET (Tarefa)',
+                    method: 'GET',
+                    url: '{{baseUrl}}/todos/1',
+                    body: '',
+                    bodyType: 'json',
+                    headers: [{key: 'Content-Type', val: 'application/json'}],
+                    formData: []
+                },
+                {
+                    id: 'req_2',
+                    folderId: 'fol_auth',
+                    name: 'Exemplo POST (Criar)',
+                    method: 'POST',
+                    url: '{{baseUrl}}/posts',
+                    body: '{\n  "title": "Meu Post Salvo",\n  "body": "Conteúdo fixo",\n  "userId": 1\n}',
+                    bodyType: 'json',
+                    headers: [{key: 'Content-Type', val: 'application/json'}, {key: 'Authorization', val: '{{token}}'}],
+                    formData: []
+                }
+            ];
+        }
+
+        let environments = JSON.parse(localStorage.getItem('rest_client_environments') || 'null');
+        if (!environments || environments.length === 0) {
+            environments = [
+                {
+                    id: 'env_default',
+                    name: 'Development',
+                    variables: [
+                        {key: 'baseUrl', val: 'https://jsonplaceholder.typicode.com'},
+                        {key: 'token', val: 'Bearer meu-token-secreto-dev'}
+                    ]
+                },
+                {
+                    id: 'env_prod',
+                    name: 'Production',
+                    variables: [
+                        {key: 'baseUrl', val: 'https://api.producao.com'},
+                        {key: 'token', val: 'Bearer meu-token-secreto-prod'}
+                    ]
+                }
+            ];
+        }
+
+        let activeEnvId = localStorage.getItem('rest_client_active_env') || environments[0].id;
+        let modalSelectedEnvId = environments[0].id;
+        let currentRequestId = requests[0]?.id || null;
+
+        renderRequestsList();
+        if (currentRequestId) loadRequestToUI(currentRequestId);
+        renderEnvSelectors();
+
+        function switchTab(tab) {
+            document.getElementById('pane-body').classList.add('hidden');
+            document.getElementById('pane-formdata').classList.add('hidden');
+            document.getElementById('pane-headers').classList.add('hidden');
+            document.getElementById('pane-params').classList.add('hidden');
+            
+            document.getElementById('tab-body').className = "px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap";
+            document.getElementById('tab-formdata').className = "px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap";
+            document.getElementById('tab-headers').className = "px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap";
+            document.getElementById('tab-params').className = "px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition whitespace-nowrap";
+
+            document.getElementById('pane-' + tab).classList.remove('hidden');
+            document.getElementById('tab-' + tab).className = "px-4 py-2.5 text-xs font-semibold border-b-2 border-indigo-500 text-indigo-400 transition whitespace-nowrap";
+            
+            const req = requests.find(r => r.id === currentRequestId);
+            if (req) {
+                req.bodyType = (tab === 'formdata') ? 'formdata' : 'json';
+                saveStorage();
+            }
+        }
+
+        function switchResTab(tab) {
+            document.getElementById('res-pane-body').classList.add('hidden');
+            document.getElementById('res-pane-headers').classList.add('hidden');
+            document.getElementById('res-tab-body').className = "text-xs text-gray-400 font-medium px-2 py-1 rounded hover:bg-zinc-800 transition";
+            document.getElementById('res-tab-headers').className = "text-xs text-gray-400 font-medium px-2 py-1 rounded hover:bg-zinc-800 transition";
+
+            document.getElementById('res-pane-' + tab).classList.remove('hidden');
+            document.getElementById('res-tab-' + tab).className = "text-xs text-indigo-400 font-medium px-2 py-1 rounded bg-indigo-950/50 border border-indigo-800 transition";
+        }
+
+        function saveStorage() {
+            localStorage.setItem('rest_client_folders', JSON.stringify(folders));
+            localStorage.setItem('rest_client_saved_reqs', JSON.stringify(requests));
+        }
+
+        function renderRequestsList() {
+            const list = document.getElementById('requests-list');
+            document.getElementById('request-count').innerText = requests.length;
+            
+            list.innerHTML = '';
+            
+            folders.forEach(folder => {
+                const folderDiv = document.createElement('div');
+                folderDiv.className = "mb-3";
+                
+                const folderHeader = document.createElement('div');
+                folderHeader.className = "flex items-center justify-between text-xs font-semibold text-gray-400 px-2 py-1 bg-insomnia-panel/60 rounded-md mb-1";
+                folderHeader.innerHTML = `
+                    <div class="flex items-center space-x-1.5 truncate">
+                        <i class="fa-solid fa-folder text-indigo-400"></i>
+                        <span class="truncate text-gray-300">${folder.name}</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="addNewRequestToFolder('${folder.id}')" title="Nova requisição nesta pasta" class="hover:text-indigo-400 p-1"><i class="fa-solid fa-plus text-[10px]"></i></button>
+                        ${folders.length > 1 ? `<button onclick="deleteFolder('${folder.id}')" title="Excluir pasta" class="hover:text-red-400 p-1"><i class="fa-solid fa-trash text-[10px]"></i></button>` : ''}
+                    </div>
+                `;
+                folderDiv.appendChild(folderHeader);
+
+                const reqsContainer = document.createElement('div');
+                reqsContainer.className = "space-y-1 pl-2";
+                
+                const folderReqs = requests.filter(r => r.folderId === folder.id);
+                if (folderReqs.length === 0) {
+                    const emptyEl = document.createElement('div');
+                    emptyEl.className = "text-[11px] text-gray-600 px-2 py-1 italic";
+                    emptyEl.innerText = "Pasta vazia";
+                    reqsContainer.appendChild(emptyEl);
+                } else {
+                    folderReqs.forEach(req => {
+                        let badgeColor = "text-emerald-400 bg-emerald-950/60 border-emerald-900";
+                        if (req.method === 'POST') badgeColor = "text-amber-400 bg-amber-950/60 border-amber-900";
+                        if (req.method === 'PUT') badgeColor = "text-blue-400 bg-blue-950/60 border-blue-900";
+                        if (req.method === 'DELETE') badgeColor = "text-rose-400 bg-rose-950/60 border-rose-900";
+                        if (req.method === 'PATCH') badgeColor = "text-purple-400 bg-purple-950/60 border-purple-900";
+
+                        const isActive = req.id === currentRequestId;
+                        const activeClass = isActive ? 'bg-zinc-800 border-indigo-500/60 shadow-sm' : 'bg-insomnia-panel border-insomnia-border hover:bg-zinc-800/80';
+
+                        const reqItem = document.createElement('div');
+                        reqItem.className = `p-2 rounded-lg border cursor-pointer transition text-xs flex items-center justify-between group ${activeClass}`;
+                        reqItem.onclick = () => selectRequest(req.id);
+                        reqItem.innerHTML = `
+                            <div class="flex items-center space-x-2 overflow-hidden">
+                                <span class="font-bold px-1.5 py-0.5 rounded text-[10px] border ${badgeColor}">${req.method}</span>
+                                <div class="truncate flex flex-col">
+                                    <span class="font-semibold text-gray-200 truncate">${req.name || 'Sem Nome'}</span>
+                                    <span class="text-[10px] text-gray-500 font-mono truncate">${req.url || 'URL vazia'}</span>
+                                </div>
+                            </div>
+                            ${requests.length > 1 ? `<button onclick="event.stopPropagation(); deleteRequest('${req.id}')" class="text-gray-500 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-trash text-[10px]"></i></button>` : ''}
+                        `;
+                        reqsContainer.appendChild(reqItem);
+                    });
+                }
+
+                folderDiv.appendChild(reqsContainer);
+                list.appendChild(folderDiv);
+            });
+
+            saveStorage();
+        }
+
+        function selectRequest(id) {
+            currentRequestId = id;
+            loadRequestToUI(id);
+            renderRequestsList();
+        }
+
+        function loadRequestToUI(id) {
+            const req = requests.find(r => r.id === id);
+            if (!req) return;
+
+            document.getElementById('request-method').value = req.method || 'GET';
+            document.getElementById('request-url').value = req.url || '';
+            document.getElementById('request-name').value = req.name || '';
+            document.getElementById('request-body').value = req.body || '';
+
+            if (req.bodyType === 'formdata') {
+                switchTab('formdata');
+            } else {
+                switchTab('body');
+            }
+
+            const container = document.getElementById('headers-container');
+            container.innerHTML = '';
+            const headers = req.headers || [];
+            if (headers.length === 0) {
+                addHeaderRowToDOM('', '');
+            } else {
+                headers.forEach(h => addHeaderRowToDOM(h.key, h.val));
+            }
+            updateHeaderCount();
+
+            const fdContainer = document.getElementById('formdata-container');
+            fdContainer.innerHTML = '';
+            const formdata = req.formData || [];
+            if (formdata.length === 0) {
+                addFormDataRowToDOM('text', '', '');
+            } else {
+                formdata.forEach(f => addFormDataRowToDOM(f.type || 'text', f.key, f.val));
+            }
+        }
+
+        function updateCurrentRequestField(field, value) {
+            const req = requests.find(r => r.id === currentRequestId);
+            if (!req) return;
+            req[field] = value;
+            renderRequestsList();
+        }
+
+        function saveCurrentHeaders() {
+            const req = requests.find(r => r.id === currentRequestId);
+            if (!req) return;
+            const headers = [];
+            document.querySelectorAll('.header-row').forEach(row => {
+                const k = row.querySelector('.header-key').value.trim();
+                const v = row.querySelector('.header-val').value.trim();
+                if (k || v) headers.push({ key: k, val: v });
+            });
+            req.headers = headers;
+            saveStorage();
+            updateHeaderCount();
+        }
+
+        function addHeaderRowToDOM(key = '', val = '') {
+            const container = document.getElementById('headers-container');
+            const div = document.createElement('div');
+            div.className = "flex items-center space-x-2 header-row";
+            div.innerHTML = `
+                <input type="text" placeholder="Chave (ex: Authorization)" oninput="saveCurrentHeaders()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 header-key" value="${key}">
+                <input type="text" placeholder="Valor (ex: Bearer token...)" oninput="saveCurrentHeaders()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 header-val" value="${val}">
+                <button onclick="removeHeaderRow(this)" class="text-gray-500 hover:text-red-400 p-2 transition">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function addHeaderRow() {
+            addHeaderRowToDOM('', '');
+        }
+
+        function removeHeaderRow(btn) {
+            btn.closest('.header-row').remove();
+            saveCurrentHeaders();
+        }
+
+        function updateHeaderCount() {
+            const count = document.querySelectorAll('.header-row').length;
+            document.getElementById('header-count').innerText = count;
+        }
+
+        function saveCurrentFormData() {
+            const req = requests.find(r => r.id === currentRequestId);
+            if (!req) return;
+            const formDataArr = [];
+            document.querySelectorAll('.formdata-row').forEach(row => {
+                const type = row.querySelector('.fd-type').value;
+                const k = row.querySelector('.fd-key').value.trim();
+                const v = row.querySelector('.fd-val') ? row.querySelector('.fd-val').value.trim() : '';
+                if (k) formDataArr.push({ type, key: k, val: v });
+            });
+            req.formData = formDataArr;
+            saveStorage();
+        }
+
+        function addFormDataRowToDOM(type = 'text', key = '', val = '') {
+            const container = document.getElementById('formdata-container');
+            const div = document.createElement('div');
+            div.className = "flex items-center space-x-2 formdata-row";
+            
+            const isFile = type === 'file';
+            div.innerHTML = `
+                <select onchange="onFormDataRowTypeChange(this); saveCurrentFormData();" class="bg-insomnia-panel border border-insomnia-border rounded-lg px-2 py-1.5 text-xs text-indigo-300 font-medium focus:outline-none h-9 fd-type">
+                    <option value="text" ${!isFile ? 'selected' : ''}>Texto</option>
+                    <option value="file" ${isFile ? 'selected' : ''}>Arquivo</option>
+                </select>
+                <input type="text" placeholder="Nome do campo" oninput="saveCurrentFormData()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 fd-key" value="${key}">
+                ${isFile ? 
+                    `<input type="file" onchange="saveCurrentFormData()" class="flex-1 text-xs text-gray-400 file:mr-4 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-950 file:text-indigo-300 hover:file:bg-indigo-900 fd-val">` :
+                    `<input type="text" placeholder="Valor do campo" oninput="saveCurrentFormData()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 fd-val" value="${val}">`
+                }
+                <button onclick="removeFormDataRow(this)" class="text-gray-500 hover:text-red-400 p-2 transition">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function addFormDataRow() {
+            addFormDataRowToDOM('text', '', '');
+        }
+
+        function onFormDataRowTypeChange(selectEl) {
+            const row = selectEl.closest('.formdata-row');
+            const type = selectEl.value;
+            const keyInput = row.querySelector('.fd-key').value;
+            row.remove();
+            addFormDataRowToDOM(type, keyInput, '');
+        }
+
+        function removeFormDataRow(btn) {
+            btn.closest('.formdata-row').remove();
+            saveCurrentFormData();
+        }
+
+        // Gerenciamento de Pastas
+        function openNewFolderModal() {
+            document.getElementById('new-folder-name').value = '';
+            document.getElementById('folder-modal').classList.remove('hidden');
+        }
+
+        function closeFolderModal() {
+            document.getElementById('folder-modal').classList.add('hidden');
+        }
+
+        function createFolder() {
+            const nameInput = document.getElementById('new-folder-name').value.trim();
+            if (!nameInput) return;
+            const newFolder = {
+                id: 'fol_' + Date.now(),
+                name: nameInput
+            };
+            folders.push(newFolder);
+            saveStorage();
+            closeFolderModal();
+            renderRequestsList();
+        }
+
+        function deleteFolder(folderId) {
+            if (folders.length <= 1) return;
+            if (!confirm('Deseja realmente excluir esta pasta e todas as requisições associadas?')) return;
+            
+            folders = folders.filter(f => f.id !== folderId);
+            requests = requests.filter(r => r.folderId !== folderId);
+            
+            if (!requests.some(r => r.id === currentRequestId) && requests.length > 0) {
+                currentRequestId = requests[0].id;
+                loadRequestToUI(currentRequestId);
+            }
+            saveStorage();
+            renderRequestsList();
+        }
+
+        function addNewRequestToFolder(folderId) {
+            const newId = 'req_' + Date.now();
+            const newReq = {
+                id: newId,
+                folderId: folderId,
+                name: 'Nova Requisição',
+                method: 'GET',
+                url: '',
+                body: '',
+                bodyType: 'json',
+                headers: [{key: 'Content-Type', val: 'application/json'}],
+                formData: []
+            };
+            requests.unshift(newReq);
+            selectRequest(newId);
+        }
+
+        function addNewRequest() {
+            const targetFolderId = folders[0]?.id || 'fol_geral';
+            addNewRequestToFolder(targetFolderId);
+        }
+
+        function deleteRequest(id) {
+            if (requests.length <= 1) return;
+            requests = requests.filter(r => r.id !== id);
+            if (currentRequestId === id) {
+                currentRequestId = requests[0].id;
+                loadRequestToUI(currentRequestId);
+            }
+            renderRequestsList();
+        }
+
+        // Gerenciamento de Ambientes
+        function renderEnvSelectors() {
+            const activeSelect = document.getElementById('active-env-select');
+            activeSelect.innerHTML = '';
+            environments.forEach(env => {
+                const opt = document.createElement('option');
+                opt.value = env.id;
+                opt.innerText = env.name;
+                if (env.id === activeEnvId) opt.selected = true;
+                activeSelect.appendChild(opt);
+            });
+
+            const modalSelect = document.getElementById('modal-env-select');
+            modalSelect.innerHTML = '';
+            environments.forEach(env => {
+                const opt = document.createElement('option');
+                opt.value = env.id;
+                opt.innerText = env.name;
+                if (env.id === modalSelectedEnvId) opt.selected = true;
+                modalSelect.appendChild(opt);
+            });
+
+            const currentEnvObj = environments.find(e => e.id === activeEnvId) || environments[0];
+            document.getElementById('env-count').innerText = currentEnvObj.variables.length;
+
+            const deleteBtn = document.getElementById('delete-env-btn');
+            if (environments.length > 1) {
+                deleteBtn.classList.remove('hidden');
+            } else {
+                deleteBtn.classList.add('hidden');
+            }
+        }
+
+        function switchActiveEnvironment(envId) {
+            activeEnvId = envId;
+            localStorage.setItem('rest_client_active_env', activeEnvId);
+            renderEnvSelectors();
+        }
+
+        function selectModalEnv(envId) {
+            modalSelectedEnvId = envId;
+            renderEnvRows();
+        }
+
+        function addNewEnvironment() {
+            const name = prompt('Nome do novo ambiente (ex: Staging, QA):');
+            if (!name || !name.trim()) return;
+            const newEnv = {
+                id: 'env_' + Date.now(),
+                name: name.trim(),
+                variables: [{key: 'baseUrl', val: 'https://api.staging.com'}]
+            };
+            environments.push(newEnv);
+            modalSelectedEnvId = newEnv.id;
+            activeEnvId = newEnv.id;
+            saveEnvironmentsToStorage();
+            renderEnvSelectors();
+            renderEnvRows();
+        }
+
+        function deleteCurrentEnvironment() {
+            if (environments.length <= 1) return;
+            if (!confirm(`Deseja realmente excluir o ambiente?`)) return;
+            
+            environments = environments.filter(e => e.id !== modalSelectedEnvId);
+            modalSelectedEnvId = environments[0].id;
+            if (activeEnvId === modalSelectedEnvId) {
+                activeEnvId = environments[0].id;
+            }
+            saveEnvironmentsToStorage();
+            renderEnvSelectors();
+            renderEnvRows();
+        }
+
+        function saveEnvironmentsToStorage() {
+            localStorage.setItem('rest_client_environments', JSON.stringify(environments));
+            localStorage.setItem('rest_client_active_env', activeEnvId);
+        }
+
+        function openEnvModal() {
+            modalSelectedEnvId = activeEnvId;
+            document.getElementById('env-modal').classList.remove('hidden');
+            renderEnvSelectors();
+            renderEnvRows();
+        }
+
+        function closeEnvModal() {
+            document.getElementById('env-modal').classList.add('hidden');
+            renderEnvSelectors();
+        }
+
+        function renderEnvRows() {
+            const container = document.getElementById('env-container');
+            container.innerHTML = '';
+            
+            const envObj = environments.find(e => e.id === modalSelectedEnvId);
+            if (!envObj || !envObj.variables || envObj.variables.length === 0) {
+                container.innerHTML = '<span class="text-xs text-gray-500">Nenhuma variável definida neste ambiente.</span>';
+                return;
+            }
+
+            envObj.variables.forEach((env, index) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center space-x-2 env-row";
+                div.innerHTML = `
+                    <input type="text" placeholder="Nome (ex: baseUrl)" oninput="saveEnvVariables()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 env-key" value="${env.key}">
+                    <input type="text" placeholder="Valor" oninput="saveEnvVariables()" class="flex-1 bg-insomnia-panel border border-insomnia-border rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-indigo-500 h-9 env-val" value="${env.val}">
+                    <button onclick="removeEnvRow(${index})" class="text-gray-500 hover:text-red-400 p-2 transition">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function addEnvRow() {
+            const envObj = environments.find(e => e.id === modalSelectedEnvId);
+            if (envObj) {
+                envObj.variables.push({key: '', val: ''});
+                renderEnvRows();
+            }
+        }
+
+        function removeEnvRow(index) {
+            const envObj = environments.find(e => e.id === modalSelectedEnvId);
+            if (envObj) {
+                envObj.variables.splice(index, 1);
+                renderEnvRows();
+                saveEnvVariables();
+            }
+        }
+
+        function saveEnvVariables() {
+            const envObj = environments.find(e => e.id === modalSelectedEnvId);
+            if (!envObj) return;
+            const vars = [];
+            document.querySelectorAll('.env-row').forEach(row => {
+                const k = row.querySelector('.env-key').value.trim();
+                const v = row.querySelector('.env-val').value.trim();
+                if (k) vars.push({ key: k, val: v });
+            });
+            envObj.variables = vars;
+            saveEnvironmentsToStorage();
+            renderEnvSelectors();
+        }
+
+        function replaceEnvVariables(str) {
+            if (!str) return str;
+            const activeEnvObj = environments.find(e => e.id === activeEnvId) || environments[0];
+            let result = str;
+            if (activeEnvObj && activeEnvObj.variables) {
+                activeEnvObj.variables.forEach(env => {
+                    if (env.key) {
+                        const regex = new RegExp(`{{\\s*${env.key}\\s*}}`, 'g');
+                        result = result.replace(regex, env.val);
+                    }
+                });
+            }
+            return result;
+        }
+
+        function formatJSON() {
+            const textarea = document.getElementById('request-body');
+            try {
+                if (!textarea.value.trim()) return;
+                const parsed = JSON.parse(textarea.value);
+                textarea.value = JSON.stringify(parsed, null, 2);
+                updateCurrentRequestField('body', textarea.value);
+            } catch (e) {
+                // Ignore invalid json
+            }
+        }
+
+        function loadPreset(method, url, body) {
+            const req = requests.find(r => r.id === currentRequestId);
+            if (req) {
+                req.method = method;
+                req.url = url;
+                req.body = body;
+                req.bodyType = 'json';
+                req.name = method === 'GET' ? 'API GET Exemplo' : 'API POST Exemplo';
+            }
+            loadRequestToUI(currentRequestId);
+            renderRequestsList();
+            switchTab('body');
+        }
+
+        async function sendRequest() {
+            const method = document.getElementById('request-method').value;
+            let rawUrl = document.getElementById('request-url').value.trim();
+            const url = replaceEnvVariables(rawUrl);
+            const bodyContent = replaceEnvVariables(document.getElementById('request-body').value);
+
+            if (!url) {
+                alertBox('Por favor, informe uma URL válida.');
+                return;
+            }
+
+            const headers = {};
+            document.querySelectorAll('.header-row').forEach(row => {
+                const k = row.querySelector('.header-key').value.trim();
+                const v = replaceEnvVariables(row.querySelector('.header-val').value.trim());
+                if (k) headers[k] = v;
+            });
+
+            document.getElementById('response-placeholder').classList.add('hidden');
+            document.getElementById('response-output').classList.add('hidden');
+            document.getElementById('response-status').classList.add('hidden');
+            document.getElementById('response-time').classList.add('hidden');
+            document.getElementById('response-loader').classList.remove('hidden');
+
+            const startTime = performance.now();
+
+            try {
+                const options = { method: method };
+                const req = requests.find(r => r.id === currentRequestId);
+                
+                if (req && req.bodyType === 'formdata') {
+                    const formData = new FormData();
+                    document.querySelectorAll('.formdata-row').forEach(row => {
+                        const type = row.querySelector('.fd-type').value;
+                        const k = row.querySelector('.fd-key').value.trim();
+                        if (!k) return;
+                        
+                        if (type === 'file') {
+                            const fileInput = row.querySelector('.fd-val');
+                            if (fileInput && fileInput.files && fileInput.files[0]) {
+                                formData.append(k, fileInput.files[0]);
+                            }
+                        } else {
+                            const valInput = row.querySelector('.fd-val');
+                            const v = valInput ? replaceEnvVariables(valInput.value) : '';
+                            formData.append(k, v);
+                        }
+                    });
+                    options.body = formData;
+                    delete headers['Content-Type'];
+                    delete headers['content-type'];
+                } else {
+                    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && bodyContent) {
+                        options.body = bodyContent;
+                    }
+                    options.headers = headers;
+                }
+
+                if (req && req.bodyType !== 'formdata') {
+                    options.headers = headers;
+                }
+
+                const response = await fetch(url, options);
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+
+                const responseText = await response.text();
+                let formattedOutput = responseText;
+                
+                try {
+                    const jsonParsed = JSON.parse(responseText);
+                    formattedOutput = JSON.stringify(jsonParsed, null, 2);
+                } catch (e) {
+                    // Mantém texto puro
+                }
+
+                const statusCodeEl = document.getElementById('status-code');
+                const statusDotEl = document.getElementById('status-dot');
+                const statusBadge = document.getElementById('response-status');
+                
+                statusCodeEl.innerText = `${response.status} ${response.statusText || ''}`;
+                statusBadge.classList.remove('hidden');
+                
+                if (response.ok) {
+                    statusBadge.className = "text-xs font-bold px-2 py-0.5 rounded flex items-center space-x-1.5 bg-emerald-950 text-emerald-400 border border-emerald-800";
+                    statusDotEl.className = "w-2 h-2 rounded-full bg-emerald-400";
+                } else {
+                    statusBadge.className = "text-xs font-bold px-2 py-0.5 rounded flex items-center space-x-1.5 bg-rose-950 text-rose-400 border border-rose-800";
+                    statusDotEl.className = "w-2 h-2 rounded-full bg-rose-400";
+                }
+
+                const timeEl = document.getElementById('response-time');
+                timeEl.innerText = `${duration} ms`;
+                timeEl.classList.remove('hidden');
+
+                const resHeadersContainer = document.getElementById('response-headers-output');
+                resHeadersContainer.innerHTML = '';
+                response.headers.forEach((val, key) => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `<span class="text-indigo-300">${key}:</span> <span class="text-gray-300">${val}</span>`;
+                    resHeadersContainer.appendChild(div);
+                });
+
+                document.getElementById('response-loader').classList.add('hidden');
+                const outputEl = document.getElementById('response-output');
+                outputEl.innerText = formattedOutput;
+                outputEl.classList.remove('hidden');
+
+            } catch (error) {
+                document.getElementById('response-loader').classList.add('hidden');
+                const outputEl = document.getElementById('response-output');
+                outputEl.innerText = `Erro na Requisição / CORS:\n${error.message}\n\nNota: Devido às políticas de segurança do navegador (CORS), algumas APIs externas bloqueiam requisições diretas feitas via browser a menos que possuam os headers corretos.`;
+                outputEl.className = "text-xs font-mono text-rose-400 whitespace-pre-wrap break-all";
+                outputEl.classList.remove('hidden');
+                
+                const statusBadge = document.getElementById('response-status');
+                statusBadge.className = "text-xs font-bold px-2 py-0.5 rounded flex items-center space-x-1.5 bg-rose-950 text-rose-400 border border-rose-800";
+                document.getElementById('status-code').innerText = "Erro CORS/Rede";
+                statusBadge.classList.remove('hidden');
+            }
+        }
+
+        function copyResponse() {
+            const outputText = document.getElementById('response-output').innerText;
+            if (!outputText) return;
+            const textarea = document.createElement('textarea');
+            textarea.value = outputText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            const btn = document.querySelector('[title="Copiar resposta"]');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i>';
+            setTimeout(() => btn.innerHTML = originalHTML, 1500);
+        }
+
+        function alertBox(msg) {
+            const div = document.createElement('div');
+            div.className = "fixed bottom-5 right-5 bg-zinc-900 border border-indigo-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 z-50 text-xs animate-bounce";
+            div.innerHTML = `<i class="fa-solid fa-circle-exclamation text-indigo-400 text-base"></i><span>${msg}</span>`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
